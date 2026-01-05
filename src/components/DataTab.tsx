@@ -1,9 +1,7 @@
 import { useState } from "preact/hooks";
 import { Series, DataPoint } from "../types";
 import Papa from "papaparse";
-import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import { openFile, readText, readExcel, FileResult } from "../platform";
 import { parseCellRange } from "../utils";
 import { Toggle } from "./Toggle";
 import { CustomSelect } from "./CustomSelect";
@@ -26,13 +24,13 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
     const [renameName, setRenameName] = useState("");
 
     // CSV State
-    const [csvPath, setCsvPath] = useState("");
+    const [csvPath, setCsvPath] = useState<FileResult | null>(null);
     const [csvHasHeader, setCsvHasHeader] = useState(true);
     const [csvXCol, setCsvXCol] = useState("x");
     const [csvYCol, setCsvYCol] = useState("y");
 
     // Excel State
-    const [excelPath, setExcelPath] = useState("");
+    const [excelPath, setExcelPath] = useState<FileResult | null>(null);
     const [excelSheet, setExcelSheet] = useState("");
     const [excelXRange, setExcelXRange] = useState("A2:A11");
     const [excelYRange, setExcelYRange] = useState("B2:B11");
@@ -40,6 +38,12 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
     // Manual State
     const [manualInput, setManualInput] = useState("");
     const [manualFormat, setManualFormat] = useState<'pairs' | 'lists'>('pairs');
+
+    const getFileName = (file: FileResult | null) => {
+        if (!file) return "No file selected";
+        if (typeof file === 'string') return file.split(/[/\\]/).pop() || file;
+        return file.name;
+    };
 
     const removeSeries = (id: string) => {
         setSeries(series.filter(s => s.id !== id));
@@ -98,11 +102,8 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
     };
 
     const selectCsvFile = async () => {
-        const selected = await open({
-            multiple: false,
-            filters: [{ name: 'CSV', extensions: ['csv'] }]
-        });
-        if (selected && typeof selected === 'string') {
+        const selected = await openFile([{ name: 'CSV', extensions: ['csv'] }]);
+        if (selected) {
             setCsvPath(selected);
         }
     };
@@ -111,7 +112,7 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
         if (!csvPath) return;
         
         try {
-            const content = await readTextFile(csvPath);
+            const content = await readText(csvPath);
             Papa.parse(content, {
                 header: csvHasHeader,
                 dynamicTyping: true,
@@ -140,22 +141,20 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
                         }
                     });
                     
-                    const name = csvPath.split(/[/\\]/).pop() || "New Series";
+                    const name = getFileName(csvPath);
                     onAddSeries(name, data);
-                    setCsvPath("");
+                    setCsvPath(null);
                 }
             });
         } catch (e) {
             console.error("Error reading CSV:", e);
+            addNotification('error', "Failed to load CSV: " + e);
         }
     };
 
     const selectExcelFile = async () => {
-        const selected = await open({
-            multiple: false,
-            filters: [{ name: 'Excel', extensions: ['xlsx', 'xls'] }]
-        });
-        if (selected && typeof selected === 'string') {
+        const selected = await openFile([{ name: 'Excel', extensions: ['xlsx', 'xls'] }]);
+        if (selected) {
             setExcelPath(selected);
         }
     };
@@ -171,16 +170,16 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
         }
 
         try {
-            const data = await invoke<DataPoint[]>('read_excel', {
-                path: excelPath,
-                sheetName: excelSheet || null,
-                xCol: xRange.col,
-                xRowStart: xRange.rowStart,
-                xRowEnd: xRange.rowEnd,
-                yCol: yRange.col,
-                yRowStart: yRange.rowStart,
-                yRowEnd: yRange.rowEnd
-            });
+            const data = await readExcel(
+                excelPath,
+                excelSheet || null,
+                xRange.col,
+                xRange.rowStart,
+                xRange.rowEnd,
+                yRange.col,
+                yRange.rowStart,
+                yRange.rowEnd
+            );
             onAddSeries(`Excel Data`, data);
             addNotification('success', "Excel data loaded successfully");
         } catch (e) {
@@ -296,7 +295,7 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
                     {activeTab === 'csv' && (
                         <div className="csv-input">
                             <button onClick={selectCsvFile}>Select File</button>
-                            <p>{csvPath ? csvPath.split(/[/\\]/).pop() : "No file selected"}</p>
+                            <p>{getFileName(csvPath)}</p>
 
                             <div className="control-group">
                                 <Toggle 
@@ -322,7 +321,7 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
                     {activeTab === 'excel' && (
                         <div className="excel-input">
                             <button onClick={selectExcelFile}>Select File</button>
-                            <p>{excelPath ? excelPath.split(/[/\\]/).pop() : "No file selected"}</p>
+                            <p>{getFileName(excelPath)}</p>
                             
                             <div className="control-group">
                                 <label>Sheet Name (Optional):</label>

@@ -12,10 +12,7 @@ import {
 } from "chart.js";
 import { Scatter } from "react-chartjs-2";
 import fitCurve from "fit-curve";
-import { save } from '@tauri-apps/plugin-dialog';
-import { invoke } from '@tauri-apps/api/core';
-import { writeImage } from '@tauri-apps/plugin-clipboard-manager';
-import { Image as TauriImage } from '@tauri-apps/api/image';
+import { saveImage, copyImageToClipboard } from "../platform";
 import { Series, DataPoint, ViewMode, PlotSettings } from "../types";
 import { calculateRegression } from "../regressionHelper";
 import zoomPlugin from 'chartjs-plugin-zoom';
@@ -67,19 +64,10 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
       }
 
       try {
-        const filePath = await save({
-            defaultPath: `chart.${format}`,
-            filters: [{
-                name: 'Image',
-                extensions: [format]
-            }]
-        });
-
-        if (!filePath) return; // User cancelled
-
         const bytes = await captureCanvas(containerRef.current, format);
-
-        await invoke('save_image', { path: filePath, data: Array.from(bytes) });
+        // Cast to any to avoid "SharedArrayBuffer" type mismatch error
+        const blob = new Blob([bytes as any], { type: format === 'jpg' ? 'image/jpeg' : 'image/png' });
+        await saveImage(blob, `chart.${format}`);
         addNotification('success', `Chart exported successfully!`);
       } catch (err) {
           console.error('Failed to export', err);
@@ -95,9 +83,9 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
       }
       try {
           const bytes = await captureCanvas(containerRef.current, 'png');
-
-          const image = await TauriImage.fromBytes(bytes);
-          await writeImage(image);
+          // Cast to any to avoid "SharedArrayBuffer" type mismatch error
+          const blob = new Blob([bytes as any], { type: 'image/png' });
+          await copyImageToClipboard(blob);
           addNotification('success', 'Chart copied to clipboard!');
       } catch (err) {
           console.error('Failed to copy', err);

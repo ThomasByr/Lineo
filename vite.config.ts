@@ -5,6 +5,9 @@ import fs from "node:fs";
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
+// @ts-expect-error process is a nodejs global
+const base = process.env.VITE_BASE || '/';
+
 const cargoToml = fs.readFileSync("./src-tauri/Cargo.toml", "utf-8");
 const versionMatch = cargoToml.match(/^version\s*=\s*"(.*)"/m);
 const version = versionMatch ? versionMatch[1] : "unknown";
@@ -12,6 +15,7 @@ const version = versionMatch ? versionMatch[1] : "unknown";
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [preact()],
+  base: base,
   define: {
     __APP_VERSION__: JSON.stringify(version),
   },
