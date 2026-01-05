@@ -18,6 +18,16 @@ fn save_image(path: String, data: Vec<u8>) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn save_text_file(path: String, content: String) -> Result<(), String> {
+    std::fs::write(path, content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn read_text_file_custom(path: String) -> Result<String, String> {
+    std::fs::read_to_string(path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn read_excel(
     path: String,
     sheet_name: Option<String>,
@@ -78,7 +88,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .invoke_handler(tauri::generate_handler![greet, save_image, read_excel])
+        .invoke_handler(tauri::generate_handler![greet, save_image, read_excel, save_text_file, read_text_file_custom])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
