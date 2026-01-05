@@ -1,14 +1,18 @@
 import { Series, DataPoint } from "./types";
 import html2canvas from 'html2canvas';
 
-export async function captureCanvas(container: HTMLElement, format: 'png' | 'jpg'): Promise<Uint8Array> {
+export async function captureCanvas(container: HTMLElement, format: 'png' | 'jpg', autoCrop: boolean = true): Promise<Uint8Array> {
     const isDark = document.documentElement.classList.contains('dark');
     const backgroundColor = isDark ? '#1e1e1e' : '#ffffff';
 
-    const canvas = await html2canvas(container, {
+    let canvas = await html2canvas(container, {
         backgroundColor,
         scale: 2
     });
+
+    if (autoCrop) {
+        canvas = trimCanvas(canvas, backgroundColor);
+    }
 
     const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
     const base64Url = canvas.toDataURL(mimeType, 1.0);
@@ -75,4 +79,118 @@ export function parseCellRange(range: string): { col: number, rowStart: number, 
         rowStart: Math.min(row1, row2),
         rowEnd: Math.max(row1, row2)
     };
+}
+
+function trimCanvas(canvas: HTMLCanvasElement, backgroundColor: string): HTMLCanvasElement {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return canvas;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+
+    let bgR = 255, bgG = 255, bgB = 255;
+    if (backgroundColor.startsWith('#')) {
+        const hex = backgroundColor.substring(1);
+        if (hex.length === 3) {
+            bgR = parseInt(hex[0] + hex[0], 16);
+            bgG = parseInt(hex[1] + hex[1], 16);
+            bgB = parseInt(hex[2] + hex[2], 16);
+        } else if (hex.length === 6) {
+            bgR = parseInt(hex.substring(0, 2), 16);
+            bgG = parseInt(hex.substring(2, 4), 16);
+            bgB = parseInt(hex.substring(4, 6), 16);
+        }
+    }
+
+    const isBg = (i: number) => {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+        return a === 0 || (r === bgR && g === bgG && b === bgB);
+    };
+
+    let top = 0, bottom = height, left = 0, right = width;
+
+    for (let y = 0; y < height; y++) {
+        let rowHasContent = false;
+        for (let x = 0; x < width; x++) {
+            if (!isBg((y * width + x) * 4)) {
+                rowHasContent = true;
+                break;
+            }
+        }
+        if (rowHasContent) {
+            top = y;
+            break;
+        }
+    }
+
+    for (let y = height - 1; y >= top; y--) {
+        let rowHasContent = false;
+        for (let x = 0; x < width; x++) {
+            if (!isBg((y * width + x) * 4)) {
+                rowHasContent = true;
+                break;
+            }
+        }
+        if (rowHasContent) {
+            bottom = y + 1;
+            break;
+        }
+    }
+
+    for (let x = 0; x < width; x++) {
+        let colHasContent = false;
+        for (let y = top; y < bottom; y++) {
+            if (!isBg((y * width + x) * 4)) {
+                colHasContent = true;
+                break;
+            }
+        }
+        if (colHasContent) {
+            left = x;
+            break;
+        }
+    }
+
+    for (let x = width - 1; x >= left; x--) {
+        let colHasContent = false;
+        for (let y = top; y < bottom; y++) {
+            if (!isBg((y * width + x) * 4)) {
+                colHasContent = true;
+                break;
+            }
+        }
+        if (colHasContent) {
+            right = x + 1;
+            break;
+        }
+    }
+    
+    const padding = 20; 
+    
+    top = Math.max(0, top - padding);
+    left = Math.max(0, left - padding);
+    bottom = Math.min(height, bottom + padding);
+    right = Math.min(width, right + padding);
+
+    const trimmedWidth = right - left;
+    const trimmedHeight = bottom - top;
+
+    if (trimmedWidth <= 0 || trimmedHeight <= 0) return canvas;
+
+    const trimmedCanvas = document.createElement('canvas');
+    trimmedCanvas.width = trimmedWidth;
+    trimmedCanvas.height = trimmedHeight;
+    const trimmedCtx = trimmedCanvas.getContext('2d');
+    if (!trimmedCtx) return canvas;
+
+    trimmedCtx.fillStyle = backgroundColor;
+    trimmedCtx.fillRect(0, 0, trimmedWidth, trimmedHeight);
+
+    trimmedCtx.drawImage(canvas, left, top, trimmedWidth, trimmedHeight, 0, 0, trimmedWidth, trimmedHeight);
+    return trimmedCanvas;
 }

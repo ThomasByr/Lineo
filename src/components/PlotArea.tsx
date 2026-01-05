@@ -47,6 +47,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
   const [legendPos, setLegendPos] = useState({ x: 60, y: 20 });
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [autoCrop, setAutoCrop] = useState(true);
 
   // Reset drawn points when data changes or mode toggles
   useEffect(() => {
@@ -64,7 +65,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
       }
 
       const chart = chartRef.current;
-      const shouldHideLegend = plotSettings?.showLegend && plotSettings?.hideSystemLegendOnExport;
+      const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
       let restoreRequired = false;
       let originalGenerateLabels: any = null;
 
@@ -91,7 +92,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
       }
 
       try {
-        const bytes = await captureCanvas(containerRef.current, format);
+        const bytes = await captureCanvas(containerRef.current, format, autoCrop);
         // Cast to any to avoid "SharedArrayBuffer" type mismatch error
         const blob = new Blob([bytes as any], { type: format === 'jpg' ? 'image/jpeg' : 'image/png' });
         await saveImage(blob, `chart.${format}`);
@@ -121,7 +122,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
       }
 
       const chart = chartRef.current;
-      const shouldHideLegend = plotSettings?.showLegend && plotSettings?.hideSystemLegendOnExport;
+      const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
       let restoreRequired = false;
       let originalGenerateLabels: any = null;
 
@@ -148,7 +149,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
       }
 
       try {
-          const bytes = await captureCanvas(containerRef.current, 'png');
+          const bytes = await captureCanvas(containerRef.current, 'png', autoCrop);
           // Cast to any to avoid "SharedArrayBuffer" type mismatch error
           const blob = new Blob([bytes as any], { type: 'image/png' });
           await copyImageToClipboard(blob);
@@ -553,7 +554,9 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
             display: !!plotSettings?.xLabel,
             text: plotSettings?.xLabel,
             font: {
-                size: plotSettings?.xAxisLabelFontSize || 12
+                size: plotSettings?.xAxisLabelFontSize || 12,
+                weight: plotSettings?.xLabelStyle?.bold ? 'bold' : 'normal',
+                style: plotSettings?.xLabelStyle?.italic ? 'italic' : 'normal'
             }
         },
         ticks: {
@@ -576,7 +579,9 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
             display: !!plotSettings?.yLabel,
             text: plotSettings?.yLabel,
             font: {
-                size: plotSettings?.yAxisLabelFontSize || 12
+                size: plotSettings?.yAxisLabelFontSize || 12,
+                weight: plotSettings?.yLabelStyle?.bold ? 'bold' : 'normal',
+                style: plotSettings?.yLabelStyle?.italic ? 'italic' : 'normal'
             }
         },
         ticks: {
@@ -601,11 +606,13 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
             display: !!plotSettings?.title,
             text: plotSettings?.title,
             font: {
-                size: plotSettings?.titleFontSize || 16
+                size: plotSettings?.titleFontSize || 16,
+                weight: plotSettings?.titleStyle?.bold ? 'bold' : 'normal',
+                style: plotSettings?.titleStyle?.italic ? 'italic' : 'normal'
             }
         },
         legend: {
-            display: true,
+            display: !plotSettings?.hideSystemLegend,
             position: 'bottom',
             labels: {
                 usePointStyle: true
@@ -647,6 +654,30 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
         <button onClick={() => handleExport('png')}>Export PNG</button>
         <button onClick={() => handleExport('jpg')}>Export JPG</button>
         <button onClick={handleCopy}>Copy to Clipboard</button>
+        
+        <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc', margin: '0 5px', alignSelf: 'center' }}></div>
+        
+        <button 
+            onClick={() => setAutoCrop(!autoCrop)} 
+            title={autoCrop ? "Auto Crop Enabled" : "Auto Crop Disabled"}
+            style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '6px',
+                backgroundColor: autoCrop ? 'rgba(76, 175, 80, 0.1)' : 'transparent',
+                border: '1px solid',
+                borderColor: autoCrop ? '#4caf50' : '#ccc',
+                color: autoCrop ? 'inherit' : '#888',
+                transition: 'all 0.2s ease'
+            }}
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path>
+                <path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path>
+            </svg>
+            <span style={{ lineHeight: 1 }}>Auto Crop</span>
+            {autoCrop && <span style={{ fontSize: '1.2em', marginLeft: '4px', lineHeight: 1, color: '#4caf50', fontWeight: 'bold' }}>✓</span>}
+        </button>
       </div>
       <div 
         ref={containerRef}

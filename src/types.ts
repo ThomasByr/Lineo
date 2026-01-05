@@ -52,16 +52,25 @@ export interface Series {
   regressionPoints: DataPoint[]; // Calculated points
 }
 
+export interface TextStyle {
+  bold: boolean;
+  italic: boolean;
+}
+
 export interface PlotSettings {
   title: string;
+  titleStyle: TextStyle;
   titleFontSize: number;
   xLabel: string;
+  xLabelStyle: TextStyle;
   yLabel: string;
+  yLabelStyle: TextStyle;
   xAxisLabelFontSize: number;
   yAxisLabelFontSize: number;
   xTickLabelFontSize: number;
   yTickLabelFontSize: number;
   showLegend: boolean;
+  hideSystemLegend: boolean;
   hideSystemLegendOnExport: boolean;
   legendFontSize: number;
   showGridX: boolean;

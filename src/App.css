@@ -50,12 +50,12 @@ h1 {
 .app-layout {
   display: flex;
   flex: 1;
-  gap: 20px;
+  gap: 0; /* Removed gap to handle resizer manually */
   overflow: hidden;
 }
 
 .sidebar {
-  width: 400px;
+  /* width is controlled via inline style */
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -64,6 +64,43 @@ h1 {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   overflow-y: auto;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.resizer {
+  width: 10px;
+  cursor: col-resize;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  margin: 0 5px;
+  position: relative;
+}
+
+.resizer::after {
+  content: "";
+  width: 4px;
+  height: 40px;
+  background-color: #ddd;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.resizer:hover::after,
+.resizer.resizing::after {
+  background-color: #396cd8;
+}
+
+:root.dark .resizer::after {
+  background-color: #444;
+}
+
+:root.dark .resizer:hover::after,
+:root.dark .resizer.resizing::after {
+  background-color: #396cd8;
 }
 
 .main-content {
@@ -74,6 +111,7 @@ h1 {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  min-width: 0; /* Allow shrinking */
 }
 
 .input-group {

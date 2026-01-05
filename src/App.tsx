@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useCallback } from "preact/hooks";
 import "./App.css";
 import { DataTab } from "./components/DataTab";
 import { SettingsTab } from "./components/SettingsTab";
@@ -20,14 +20,18 @@ function App() {
   
   const [plotSettings, setPlotSettings] = useState<PlotSettings>({
     title: '',
+    titleStyle: { bold: true, italic: false },
     titleFontSize: 16,
     xLabel: '',
+    xLabelStyle: { bold: true, italic: false },
     yLabel: '',
+    yLabelStyle: { bold: true, italic: false },
     xAxisLabelFontSize: 12,
     yAxisLabelFontSize: 12,
     xTickLabelFontSize: 10,
     yTickLabelFontSize: 10,
     showLegend: true,
+    hideSystemLegend: true,
     hideSystemLegendOnExport: true,
     legendFontSize: 12,
     showGridX: true,
@@ -43,6 +47,39 @@ function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
       return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
   });
+
+  // Sidebar Resizing
+  const [sidebarWidth, setSidebarWidth] = useState(400);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const startResizing = useCallback((e: MouseEvent) => {
+    setIsResizing(true);
+    e.preventDefault();
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback((e: MouseEvent) => {
+    if (isResizing) {
+      const newWidth = e.clientX - 20; // 20px padding
+      if (newWidth > 250 && newWidth < 800) {
+        setSidebarWidth(newWidth);
+      }
+    }
+  }, [isResizing]);
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', resize);
+      window.addEventListener('mouseup', stopResizing);
+    }
+    return () => {
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+  }, [isResizing, resize, stopResizing]);
 
   useEffect(() => {
       localStorage.setItem('theme', theme);
@@ -148,7 +185,7 @@ function App() {
       </div>
       
       <div className="app-layout">
-        <div className="sidebar">
+        <div className="sidebar" style={{ width: `${sidebarWidth}px` }}>
             <div className="sidebar-tabs">
                 <button 
                     className={activeTab === 'data' ? 'active' : ''} 
@@ -197,6 +234,11 @@ function App() {
                 )}
             </div>
         </div>
+
+        <div 
+            className={`resizer ${isResizing ? 'resizing' : ''}`}
+            onMouseDown={startResizing as any}
+        ></div>
 
         <div className="main-content">
             <PlotArea 
