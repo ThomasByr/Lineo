@@ -88,6 +88,18 @@ A GitHub Actions workflow has been included to automatically deploy to GitHub Pa
 3. Push your changes to the `main` branch.
 4. The `Deploy Web to GitHub Pages` workflow will run and deploy your site.
 
+<details><summary>Troubleshooting: "Tag is not allowed to deploy"</summary>
+
+If you see an error like `Tag "v0.1.1" is not allowed to deploy to github-pages due to environment protection rules`, you need to update your environment settings:
+
+1. Go to repository **Settings** > **Environments** > **github-pages**.
+2. Under **Deployment branches and tags**, click **Add deployment branch or tag rule**.
+3. Select **Tag** from the dropdown.
+4. Enter `v*` (or `*`) as the pattern.
+5. Click **Add rule**.
+
+</details>
+
 ### Limitations of Web Version
 
 When running in the browser, some features behave differently compared to the desktop version:
