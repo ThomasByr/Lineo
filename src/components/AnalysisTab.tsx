@@ -171,7 +171,7 @@ export function AnalysisTab({ series, updateSeries, editingSeriesId, setEditingS
                         <>
                             <div className="control-group">
                                 <Toggle 
-                                    label="Mode" 
+                                    label="Toggle manual mode" 
                                     checked={s.regression.mode === 'manual'} 
                                     onChange={(checked) => handleModeChange(s, checked ? 'manual' : 'auto')}
                                     onLabel="Manual"
