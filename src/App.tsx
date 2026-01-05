@@ -265,6 +265,7 @@ function App() {
                 onAddSeries={addSeries}
                 editingSeriesId={editingSeriesId}
                 updateSeries={updateSeries}
+                updatePlotSettings={updatePlotSettings}
                 viewMode={viewMode}
                 plotSettings={plotSettings}
                 onViewChange={handleViewChange}

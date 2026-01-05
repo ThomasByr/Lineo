@@ -82,6 +82,7 @@ interface PlotAreaProps {
   onAddSeries: (name: string, data: DataPoint[]) => void;
   editingSeriesId?: string | null;
   updateSeries?: (id: string, updates: Partial<Series>, skipHistory?: boolean) => void;
+  updatePlotSettings?: (updates: Partial<PlotSettings>, skipHistory?: boolean) => void;
   viewMode?: ViewMode;
   plotSettings?: PlotSettings;
   onViewChange?: (view: { x: { min: number, max: number }, y: { min: number, max: number } }) => void;
@@ -89,7 +90,7 @@ interface PlotAreaProps {
   commitTransaction?: (description: string) => void;
 }
 
-export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, viewMode = 'auto', plotSettings, onViewChange, startTransaction, commitTransaction }: PlotAreaProps) {
+export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, updatePlotSettings, viewMode = 'auto', plotSettings, onViewChange, startTransaction, commitTransaction }: PlotAreaProps) {
   const { addNotification } = useNotification();
   const chartRef = useRef<ChartJS>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -103,10 +104,16 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
   const [_, forceUpdate] = useState(0);
 
   // Custom Legend State
-  const [legendPos, setLegendPos] = useState({ x: 60, y: 20 });
+  const [legendPos, setLegendPos] = useState(plotSettings?.legendPosition || { x: 60, y: 20 });
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [autoCrop, setAutoCrop] = useState(true);
+
+  useEffect(() => {
+    if (plotSettings?.legendPosition && !isDraggingLegend) {
+        setLegendPos(plotSettings.legendPosition);
+    }
+  }, [plotSettings?.legendPosition, isDraggingLegend]);
 
   // Reset drawn points when data changes or mode toggles
   useEffect(() => {
@@ -234,6 +241,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
   const handleLegendMouseDown = (e: JSX.TargetedMouseEvent<HTMLDivElement>) => {
       e.stopPropagation();
       e.preventDefault();
+      startTransaction?.();
       const rect = e.currentTarget.getBoundingClientRect();
       setDragOffset({
           x: e.clientX - rect.left,
@@ -421,6 +429,8 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
   const handleMouseUp = () => {
     if (isDraggingLegend) {
         setIsDraggingLegend(false);
+        updatePlotSettings?.({ legendPosition: legendPos }, true);
+        commitTransaction?.("Move legend");
         return;
     }
 
@@ -715,7 +725,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
             labels: {
                 usePointStyle: true
             },
-            onClick: (e: any, legendItem: any, legend: any) => {
+            onClick: (_e: any, legendItem: any, legend: any) => {
                 const index = legendItem.datasetIndex;
                 const dataset = legend.chart.data.datasets[index];
                 if (dataset.seriesId && updateSeries) {

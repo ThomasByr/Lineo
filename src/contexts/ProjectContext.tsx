@@ -65,7 +65,8 @@ const DEFAULT_PLOT_SETTINGS: PlotSettings = {
     gridLineWidthX: 1,
     gridLineWidthY: 1,
     axisLineWidthX: 1,
-    axisLineWidthY: 1
+    axisLineWidthY: 1,
+    legendPosition: { x: 60, y: 20 }
 };
 
 export function ProjectProvider({ children }: { children: ComponentChildren }) {
