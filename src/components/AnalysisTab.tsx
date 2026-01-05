@@ -9,12 +9,14 @@ import { useNotification } from "../contexts/NotificationContext";
 
 interface AnalysisTabProps {
     series: Series[];
-    updateSeries: (id: string, updates: Partial<Series>) => void;
+    updateSeries: (id: string, updates: Partial<Series>, skipHistory?: boolean) => void;
     editingSeriesId: string | null;
     setEditingSeriesId: (id: string | null) => void;
+    startTransaction?: () => void;
+    commitTransaction?: (description: string) => void;
 }
 
-export function AnalysisTab({ series, updateSeries, editingSeriesId, setEditingSeriesId }: AnalysisTabProps) {
+export function AnalysisTab({ series, updateSeries, editingSeriesId, setEditingSeriesId, startTransaction, commitTransaction }: AnalysisTabProps) {
     const { addNotification } = useNotification();
     
     const updateRegression = (s: Series, regression: any, notify: boolean = true) => {
@@ -233,7 +235,9 @@ export function AnalysisTab({ series, updateSeries, editingSeriesId, setEditingS
                             <RangeInput 
                                 label="Line Width" 
                                 value={s.regression.width} 
-                                onChange={(val) => updateSeries(s.id, { regression: { ...s.regression, width: val } })} 
+                                onMouseDown={() => startTransaction?.()}
+                                onInput={(val) => updateSeries(s.id, { regression: { ...s.regression, width: val } }, true)}
+                                onChange={() => commitTransaction?.("Change regression width")}
                                 min="1" max="10" 
                                 unit="px"
                             />

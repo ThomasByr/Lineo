@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open as tauriOpen, save as tauriSave } from "@tauri-apps/plugin-dialog";
-import { readTextFile as tauriReadTextFile } from "@tauri-apps/plugin-fs";
 import { writeImage as tauriWriteImage } from "@tauri-apps/plugin-clipboard-manager";
 import { Image as TauriImage } from "@tauri-apps/api/image";
 import { DataPoint } from "./types";
@@ -33,7 +32,7 @@ export async function openFile(filters: { name: string; extensions: string[] }[]
 
 export async function readText(file: FileResult): Promise<string> {
     if (isTauri() && typeof file === 'string') {
-        return await tauriReadTextFile(file);
+        return await invoke('read_text_file_custom', { path: file });
     } else if (file instanceof File) {
         return await file.text();
     }
@@ -83,6 +82,29 @@ export async function saveImage(blob: Blob, defaultName: string): Promise<void> 
             await invoke('save_image', { path, data: Array.from(uint8Array) });
         }
     } else {
+        // Check for File System Access API support
+        if ('showSaveFilePicker' in window) {
+            try {
+                const handle = await (window as any).showSaveFilePicker({
+                    suggestedName: defaultName,
+                    types: [{
+                        description: 'Image',
+                        accept: {
+                            [blob.type]: ['.' + defaultName.split('.').pop()]
+                        }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                return;
+            } catch (err: any) {
+                if (err.name === 'AbortError') return;
+                // Fallback to download if something else fails
+                console.error("File picker failed, falling back to download", err);
+            }
+        }
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

@@ -45,9 +45,11 @@ interface GlobalSettingsTabProps {
     plotSettings: PlotSettings;
     setPlotSettings: (settings: PlotSettings) => void;
     viewMode: ViewMode;
+    startTransaction?: () => void;
+    commitTransaction?: (description: string) => void;
 }
 
-export function GlobalSettingsTab({ plotSettings, setPlotSettings, viewMode }: GlobalSettingsTabProps) {
+export function GlobalSettingsTab({ plotSettings, setPlotSettings, viewMode, startTransaction, commitTransaction }: GlobalSettingsTabProps) {
     const [settingsSubTab, setSettingsSubTab] = useState<'main' | 'x' | 'y'>('main');
 
     return (
@@ -69,6 +71,8 @@ export function GlobalSettingsTab({ plotSettings, setPlotSettings, viewMode }: G
                             <input 
                                 type="text" 
                                 value={plotSettings.title} 
+                                onFocus={() => startTransaction?.()}
+                                onBlur={() => commitTransaction?.("Update title")}
                                 onInput={(e) => setPlotSettings({...plotSettings, title: e.currentTarget.value})} 
                                 placeholder="Chart Title"
                                 className="flex-input"
@@ -83,6 +87,8 @@ export function GlobalSettingsTab({ plotSettings, setPlotSettings, viewMode }: G
                             <NumberInput 
                                 label="Font Size:" 
                                 value={plotSettings.titleFontSize} 
+                                onFocus={() => startTransaction?.()}
+                                onBlur={() => commitTransaction?.("Update title font size")}
                                 onChange={(val) => setPlotSettings({...plotSettings, titleFontSize: val || 16})} 
                                 labelClassName="size-label"
                             />

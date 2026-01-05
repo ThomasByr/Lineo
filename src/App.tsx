@@ -5,44 +5,39 @@ import { SettingsTab } from "./components/SettingsTab";
 import { GlobalSettingsTab } from "./components/GlobalSettingsTab";
 import { AnalysisTab } from "./components/AnalysisTab";
 import { PlotArea } from "./components/PlotArea";
-import { Series, DataPoint, ViewMode, PlotSettings } from "./types";
-import { createSeries } from "./utils";
+import { PlotSettings } from "./types";
 
 import { NotificationBell } from "./components/NotificationBell";
 import { NotificationPanel } from "./components/NotificationPanel";
 import { ToastContainer } from "./components/ToastContainer";
+import { useProject } from "./contexts/ProjectContext";
+import { HistoryButton } from "./components/HistoryButton";
 
 function App() {
-  const [series, setSeries] = useState<Series[]>([]);
+  const { 
+    series, 
+    plotSettings, 
+    viewMode,
+    addSeries, 
+    updateSeries, 
+    setSeries, 
+    updatePlotSettings, 
+    setViewMode,
+    undo, 
+    redo, 
+    canUndo, 
+    canRedo, 
+    history, 
+    future, 
+    saveProject, 
+    loadProject,
+    startTransaction,
+    commitTransaction
+  } = useProject();
+
   const [activeTab, setActiveTab] = useState<'data' | 'plot' | 'approx' | 'settings'>('data');
   const [editingSeriesId, setEditingSeriesId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('auto');
   
-  const [plotSettings, setPlotSettings] = useState<PlotSettings>({
-    title: '',
-    titleStyle: { bold: true, italic: false },
-    titleFontSize: 16,
-    xLabel: '',
-    xLabelStyle: { bold: true, italic: false },
-    yLabel: '',
-    yLabelStyle: { bold: true, italic: false },
-    xAxisLabelFontSize: 12,
-    yAxisLabelFontSize: 12,
-    xTickLabelFontSize: 10,
-    yTickLabelFontSize: 10,
-    showLegend: true,
-    hideSystemLegend: true,
-    hideSystemLegendOnExport: true,
-    legendFontSize: 12,
-    showGridX: true,
-    showGridY: true,
-    gridLineWidthX: 1,
-    gridLineWidthY: 1,
-    axisLineWidthX: 1,
-    axisLineWidthY: 1
-  });
-
-
   // Persistent Settings
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
       return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
@@ -90,20 +85,10 @@ function App() {
       }
   }, [theme]);
 
-  const updateSeries = (id: string, updates: Partial<Series>) => {
-      setSeries(series.map(s => s.id === id ? { ...s, ...updates } : s));
-  };
-
-  const handleAddSeries = (name: string, data: DataPoint[]) => {
-      const newSeries = createSeries(name, data, series.length);
-      setSeries(prev => [...prev, newSeries]);
-  };
-
   const handleViewChange = (view: { x: { min: number, max: number }, y: { min: number, max: number } }) => {
       // Only update if we are in manual mode, to reflect current view in settings
       if (viewMode === 'manual' || viewMode === 'locked') {
-          // We use a functional update to avoid dependency on plotSettings
-          setPlotSettings(prev => {
+          updatePlotSettings((prev: PlotSettings) => {
               // Only update if values are significantly different to avoid loops/jitters
               if (
                   Math.abs((prev.xMin ?? 0) - view.x.min) < 1e-10 &&
@@ -120,7 +105,7 @@ function App() {
                   yMin: view.y.min,
                   yMax: view.y.max
               };
-          });
+          }, true); // Skip history for view changes (zoom/pan)
       }
   };
 
@@ -128,6 +113,31 @@ function App() {
     <main className="container">
       <ToastContainer />
       <div className="header-row">
+        <div className="toolbar-group">
+            <button className="icon-btn" onClick={saveProject} title="Save Project">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            </button>
+            <button className="icon-btn" onClick={loadProject} title="Load Project">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            </button>
+            <div className="divider-vertical" style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 4px' }}></div>
+            <HistoryButton 
+                icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>} 
+                onClick={undo} 
+                disabled={!canUndo} 
+                items={history} 
+                onItemClick={(n) => { for(let i=0; i<n; i++) undo(); }}
+                title="Undo"
+            />
+            <HistoryButton 
+                icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path></svg>} 
+                onClick={redo} 
+                disabled={!canRedo} 
+                items={future} 
+                onItemClick={(n) => { for(let i=0; i<n; i++) redo(); }}
+                title="Redo"
+            />
+        </div>
         <h1>Linéo <span className="app-version">v{__APP_VERSION__}</span></h1>
         <div className="header-controls">
             <div className="view-control-group">
@@ -211,11 +221,16 @@ function App() {
                         series={series} 
                         setSeries={setSeries} 
                         updateSeries={updateSeries} 
-                        onAddSeries={handleAddSeries}
+                        onAddSeries={addSeries}
                     />
                 )}
                 {activeTab === 'plot' && (
-                    <SettingsTab series={series} updateSeries={updateSeries} />
+                    <SettingsTab 
+                        series={series} 
+                        updateSeries={updateSeries} 
+                        startTransaction={startTransaction}
+                        commitTransaction={commitTransaction}
+                    />
                 )}
                 {activeTab === 'approx' && (
                     <AnalysisTab 
@@ -223,13 +238,17 @@ function App() {
                         updateSeries={updateSeries} 
                         editingSeriesId={editingSeriesId}
                         setEditingSeriesId={setEditingSeriesId}
+                        startTransaction={startTransaction}
+                        commitTransaction={commitTransaction}
                     />
                 )}
                 {activeTab === 'settings' && (
                     <GlobalSettingsTab 
                         plotSettings={plotSettings} 
-                        setPlotSettings={setPlotSettings} 
+                        setPlotSettings={updatePlotSettings} 
                         viewMode={viewMode}
+                        startTransaction={startTransaction}
+                        commitTransaction={commitTransaction}
                     />
                 )}
             </div>
@@ -243,12 +262,14 @@ function App() {
         <div className="main-content">
             <PlotArea 
                 series={series}
-                onAddSeries={handleAddSeries}
+                onAddSeries={addSeries}
                 editingSeriesId={editingSeriesId}
                 updateSeries={updateSeries}
                 viewMode={viewMode}
                 plotSettings={plotSettings}
                 onViewChange={handleViewChange}
+                startTransaction={startTransaction}
+                commitTransaction={commitTransaction}
             />
         </div>
       </div>

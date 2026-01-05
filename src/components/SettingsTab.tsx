@@ -6,10 +6,12 @@ import { RangeInput } from "./RangeInput";
 
 interface SettingsTabProps {
     series: Series[];
-    updateSeries: (id: string, updates: Partial<Series>) => void;
+    updateSeries: (id: string, updates: Partial<Series>, skipHistory?: boolean) => void;
+    startTransaction?: () => void;
+    commitTransaction?: (description: string) => void;
 }
 
-export function SettingsTab({ series, updateSeries }: SettingsTabProps) {
+export function SettingsTab({ series, updateSeries, startTransaction, commitTransaction }: SettingsTabProps) {
     if (series.length === 0) return <p>No series loaded.</p>;
 
     return (
@@ -27,7 +29,9 @@ export function SettingsTab({ series, updateSeries }: SettingsTabProps) {
                     <RangeInput 
                         label="Point Size" 
                         value={s.pointSize} 
-                        onChange={(val) => updateSeries(s.id, { pointSize: val })} 
+                        onMouseDown={() => startTransaction?.()}
+                        onInput={(val) => updateSeries(s.id, { pointSize: val }, true)}
+                        onChange={() => commitTransaction?.("Change point size")}
                         min="1" max="20" 
                         unit="px"
                     />
@@ -62,7 +66,9 @@ export function SettingsTab({ series, updateSeries }: SettingsTabProps) {
                             <RangeInput 
                                 label="Line Width" 
                                 value={s.width} 
-                                onChange={(val) => updateSeries(s.id, { width: val })} 
+                                onMouseDown={() => startTransaction?.()}
+                                onInput={(val) => updateSeries(s.id, { width: val }, true)}
+                                onChange={() => commitTransaction?.("Change line width")}
                                 min="1" max="10" 
                                 unit="px"
                             />

@@ -1144,3 +1144,38 @@ label.toggle-container {
   opacity: 0;
   transform: translateY(-40px) scale(0.8);
 }
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+:root.dark .icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-group {
+    position: absolute;
+    left: 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    height: 100%;
+}
