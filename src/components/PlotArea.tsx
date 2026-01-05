@@ -21,6 +21,62 @@ import { captureCanvas } from "../utils";
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend, Title, ScatterController, zoomPlugin);
 
+function PointSymbol({ type, color, size }: { type: string, color: string, size: number }) {
+    const style: any = {
+        width: `${size}px`,
+        height: `${size}px`,
+        display: 'block',
+        boxSizing: 'border-box'
+    };
+    
+    const borderColor = 'var(--point-border-color)';
+    const border = `1px solid ${borderColor}`;
+
+    switch (type) {
+        case 'circle':
+            return <div style={{ ...style, background: color, borderRadius: '50%', border }} />;
+        case 'rect':
+            return <div style={{ ...style, background: color, border }} />;
+        case 'rectRounded':
+            return <div style={{ ...style, background: color, borderRadius: '20%', border }} />;
+        case 'rectRot':
+            return <div style={{ ...style, background: color, transform: 'rotate(45deg)', border }} />;
+        case 'triangle':
+            return (
+                <svg width={size} height={size} viewBox="0 0 24 24" style={{display: 'block'}}>
+                    <path d="M12 2L22 22H2z" fill={color} stroke={borderColor} strokeWidth="1" />
+                </svg>
+            );
+        case 'star':
+             return (
+                <svg width={size} height={size} viewBox="0 0 24 24" style={{display: 'block'}}>
+                    <path d="M12 2L15 9H22L16 13L18 20L12 16L6 20L8 13L2 9H9L12 2Z" fill={color} stroke={borderColor} strokeWidth="1" />
+                </svg>
+             );
+        case 'cross':
+            return (
+                <svg width={size} height={size} viewBox="0 0 24 24" style={{display: 'block'}}>
+                    <path d="M4 12H20M12 4V20" stroke={color} strokeWidth="3" />
+                </svg>
+            );
+        case 'crossRot':
+             return (
+                <svg width={size} height={size} viewBox="0 0 24 24" style={{display: 'block'}}>
+                    <path d="M5 5L19 19M19 5L5 19" stroke={color} strokeWidth="3" />
+                </svg>
+            );
+        case 'dash':
+        case 'line':
+             return (
+                <svg width={size} height={size} viewBox="0 0 24 24" style={{display: 'block'}}>
+                    <path d="M4 12H20" stroke={color} strokeWidth="3" />
+                </svg>
+            );
+        default:
+            return <div style={{ ...style, background: color, borderRadius: '50%', border }} />;
+    }
+}
+
 interface PlotAreaProps {
   series: Series[];
   onAddSeries: (name: string, data: DataPoint[]) => void;
@@ -738,8 +794,9 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
             >
                 {series.filter(s => s.visible).map(s => {
                     const fontSize = plotSettings?.legendFontSize || 12;
-                    const hasRegression = s.regression.type !== 'none';
-                    const symbolWidth = hasRegression ? fontSize * 2.5 : fontSize * 0.8;
+                    const showSeriesLine = s.showLine;
+                    const showRegressionLine = s.regression.type !== 'none';
+                    const symbolWidth = (showSeriesLine || showRegressionLine) ? fontSize * 2.5 : fontSize * 0.8;
                     
                     return (
                     <div key={s.id} style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px'}}>
@@ -751,28 +808,37 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
                             alignItems: 'center',
                             justifyContent: 'center'
                         }}>
-                            {hasRegression && (
+                            {showSeriesLine && (
                                 <div style={{
                                     position: 'absolute',
                                     left: 0,
                                     right: 0,
                                     top: '50%',
                                     height: 0,
-                                    borderTopWidth: '2px',
-                                    borderTopStyle: s.regression.style as any,
-                                    borderTopColor: s.regression.color,
-                                    marginTop: '-1px'
+                                    borderTopWidth: `${Math.max(1, s.width)}px`,
+                                    borderTopStyle: s.lineStyle === 'solid' ? 'solid' : s.lineStyle === 'dashed' ? 'dashed' : 'dotted',
+                                    borderTopColor: s.color,
+                                    marginTop: `-${Math.max(1, s.width)/2}px`,
+                                    zIndex: 0
                                 }}></div>
                             )}
-                            <div style={{
-                                width: `${fontSize * 0.8}px`, 
-                                height: `${fontSize * 0.8}px`, 
-                                backgroundColor: s.color,
-                                borderRadius: s.pointStyle === 'circle' ? '50%' : '0',
-                                border: '1px solid rgba(0,0,0,0.1)',
-                                zIndex: 1,
-                                position: 'relative'
-                            }}></div>
+                            {showRegressionLine && (
+                                <div style={{
+                                    position: 'absolute',
+                                    left: 0,
+                                    right: 0,
+                                    top: '50%',
+                                    height: 0,
+                                    borderTopWidth: `${Math.max(1, s.regression.width)}px`,
+                                    borderTopStyle: s.regression.style === 'solid' ? 'solid' : s.regression.style === 'dashed' ? 'dashed' : 'dotted',
+                                    borderTopColor: s.regression.color,
+                                    marginTop: `-${Math.max(1, s.regression.width)/2}px`,
+                                    zIndex: 0
+                                }}></div>
+                            )}
+                            <div style={{ zIndex: 1, position: 'relative' }}>
+                                <PointSymbol type={s.pointStyle} color={s.color} size={fontSize * 0.8} />
+                            </div>
                         </div>
                         <span>{s.name}</span>
                     </div>
