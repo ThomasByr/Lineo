@@ -17,5 +17,8 @@
         "path": "package.version"
       }
     }
+  },
+  "hooks": {
+    "after:bump": "cargo check --manifest-path src-tauri/Cargo.toml && git add src-tauri/Cargo.lock"
   }
 }
