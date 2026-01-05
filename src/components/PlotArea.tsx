@@ -65,10 +65,29 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
 
       const chart = chartRef.current;
       const shouldHideLegend = plotSettings?.showLegend && plotSettings?.hideSystemLegendOnExport;
+      let restoreRequired = false;
+      let originalGenerateLabels: any = null;
 
-      if (shouldHideLegend && chart && chart.options.plugins?.legend) {
-          chart.options.plugins.legend.display = false;
+      if (shouldHideLegend && chart) {
+          // @ts-ignore
+          originalGenerateLabels = chart.options.plugins?.legend?.labels?.generateLabels;
+          
+          // @ts-ignore
+          chart.options.plugins.legend.labels.generateLabels = function(chart) {
+             const defaultGenerator = ChartJS.defaults.plugins.legend.labels.generateLabels;
+             const generator = originalGenerateLabels || defaultGenerator;
+             const items = generator.call(this, chart);
+             return items.map((item: any) => ({
+                 ...item,
+                 fontColor: 'rgba(0,0,0,0)',
+                 color: 'rgba(0,0,0,0)',
+                 fillStyle: 'rgba(0,0,0,0)',
+                 strokeStyle: 'rgba(0,0,0,0)',
+                 boxBorderWidth: 0
+             }));
+          };
           chart.update();
+          restoreRequired = true;
       }
 
       try {
@@ -81,8 +100,14 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
           console.error('Failed to export', err);
           addNotification('error', 'Failed to export chart.');
       } finally {
-          if (shouldHideLegend && chart && chart.options.plugins?.legend) {
-              chart.options.plugins.legend.display = true;
+          if (restoreRequired && chart) {
+              if (originalGenerateLabels) {
+                  // @ts-ignore
+                  chart.options.plugins.legend.labels.generateLabels = originalGenerateLabels;
+              } else {
+                  // @ts-ignore
+                  delete chart.options.plugins.legend.labels.generateLabels;
+              }
               chart.update();
           }
       }
@@ -97,10 +122,29 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
 
       const chart = chartRef.current;
       const shouldHideLegend = plotSettings?.showLegend && plotSettings?.hideSystemLegendOnExport;
+      let restoreRequired = false;
+      let originalGenerateLabels: any = null;
 
-      if (shouldHideLegend && chart && chart.options.plugins?.legend) {
-          chart.options.plugins.legend.display = false;
+      if (shouldHideLegend && chart) {
+          // @ts-ignore
+          originalGenerateLabels = chart.options.plugins?.legend?.labels?.generateLabels;
+          
+          // @ts-ignore
+          chart.options.plugins.legend.labels.generateLabels = function(chart) {
+             const defaultGenerator = ChartJS.defaults.plugins.legend.labels.generateLabels;
+             const generator = originalGenerateLabels || defaultGenerator;
+             const items = generator.call(this, chart);
+             return items.map((item: any) => ({
+                 ...item,
+                 fontColor: 'rgba(0,0,0,0)',
+                 color: 'rgba(0,0,0,0)',
+                 fillStyle: 'rgba(0,0,0,0)',
+                 strokeStyle: 'rgba(0,0,0,0)',
+                 boxBorderWidth: 0
+             }));
+          };
           chart.update();
+          restoreRequired = true;
       }
 
       try {
@@ -113,8 +157,14 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
           console.error('Failed to copy', err);
           addNotification('error', `Failed to copy to clipboard: ${err}`);
       } finally {
-          if (shouldHideLegend && chart && chart.options.plugins?.legend) {
-              chart.options.plugins.legend.display = true;
+          if (restoreRequired && chart) {
+              if (originalGenerateLabels) {
+                  // @ts-ignore
+                  chart.options.plugins.legend.labels.generateLabels = originalGenerateLabels;
+              } else {
+                  // @ts-ignore
+                  delete chart.options.plugins.legend.labels.generateLabels;
+              }
               chart.update();
           }
       }
@@ -556,6 +606,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
         },
         legend: {
             display: true,
+            position: 'bottom',
             labels: {
                 usePointStyle: true
             }
