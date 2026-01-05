@@ -35,6 +35,10 @@ npm run tauri build
 
 This will create the application binaries in the `src-tauri/target/release/bundle` directory.
 
+### Web Version
+
+Linéo can also be built as a static website. See [WEB_DEPLOY.md](WEB_DEPLOY.md) for details.
+
 ## Usage
 
 Run the application and use the graphical interface to create and manipulate figures with approximation curves.
@@ -54,6 +58,44 @@ On the above image:
    - **Copy to clipboard**: copy the current canvas to the clipboard as an image.
 3. App settings: change the zoom mode, switch from dark to light theme, and access recent action outcomes.
 4. The canvas displays the figures. You can zoom in/out with the mouse wheel and pan by clicking and dragging (on manual zoom mode).
+
+## Deploying Linéo as a Website
+
+Linéo has been updated to support running as a standard web application in addition to a desktop application.
+
+To build the web version of Linéo, run:
+
+```bash
+npm run build
+```
+
+This will generate a `dist` directory containing the static website files.
+
+### Hosting
+
+You can host the contents of the `dist` directory on any static site hosting provider, such as:
+
+- GitHub Pages
+- Vercel
+- Netlify
+- Cloudflare Pages
+
+### GitHub Pages (Automated)
+
+A GitHub Actions workflow has been included to automatically deploy to GitHub Pages.
+
+1. Go to your repository **Settings** > **Pages**.
+2. Under **Build and deployment**, select **GitHub Actions** as the source.
+3. Push your changes to the `main` branch.
+4. The `Deploy Web to GitHub Pages` workflow will run and deploy your site.
+
+### Limitations of Web Version
+
+When running in the browser, some features behave differently compared to the desktop version:
+
+- **Excel Import**: Currently disabled in the web version. Only CSV and Manual entry are supported.
+- **File Saving**: Files (images) are downloaded via the browser's download manager instead of a system save dialog.
+- **Clipboard**: Uses the browser's Clipboard API.
 
 ## TODO and Bugs
 
