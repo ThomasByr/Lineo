@@ -1,4 +1,4 @@
-import { useContext, useState, useCallback, useRef } from "preact/hooks";
+import { useContext, useState, useCallback, useRef, useEffect } from "preact/hooks";
 import { createContext, ComponentChildren } from "preact";
 import { Series, PlotSettings, DataPoint, ViewMode } from "../types";
 import { createSeries } from "../utils";
@@ -35,11 +35,16 @@ interface ProjectContextType {
     future: HistoryAction[];
     recordAction: (description: string, undo: () => void, redo: () => void) => void;
     
-    saveProject: () => Promise<void>;
+    saveProject: (silent?: boolean) => Promise<void>;
+    saveProjectAs: () => Promise<void>;
     loadProject: () => Promise<void>;
     
     startTransaction: () => void;
     commitTransaction: (description: string) => void;
+    
+    autoSaveEnabled: boolean;
+    toggleAutoSave: () => void;
+    hasSavedPath: boolean;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -77,6 +82,13 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
     
     const [history, setHistory] = useState<HistoryAction[]>([]);
     const [future, setFuture] = useState<HistoryAction[]>([]);
+    
+    const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
+    const [hasSavedPath, setHasSavedPath] = useState(false);
+
+    // Store current file path for Save/Save As. This is not persisted on reload currently,
+    // which effectively makes reload start "untitled" until saved.
+    const currentPathRef = useRef<string | null>(null);
 
     // Refs to access current state in closures without dependency cycles
     const seriesRef = useRef(series);
@@ -277,7 +289,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         }
     }, [_setPlotSettings, recordAction]);
 
-    const saveProject = useCallback(async () => {
+    const saveProjectAs = useCallback(async () => {
         try {
             const projectData = {
                 version: 1,
@@ -297,7 +309,9 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
                 });
                 
                 if (!path) return;
-
+                
+                currentPathRef.current = path; // Update current path
+                setHasSavedPath(true);
                 await invoke('save_text_file', { path, content });
             } else {
                 const blob = new Blob([content], { type: 'application/json' });
@@ -314,6 +328,14 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
                                 }
                             }]
                         });
+                        // Allow autosave on web if we could persist handle, but for now logic is simpler.
+                        // We do NOT set hasSavedPath on web unless we have a robust way to write back.
+                        // For now, let's assume one-off saves for web unless we invest in File System Access persistence.
+                        // To satisfy "impossible to click save ... if not saved-as or loaded", we'll only set it for Tauri or if we implemented FS Access fully.
+                        // Given context, let's treat web as always manual for now to be safe, or just manual save.
+                        // Actually, for this request, if "loaded" means we have content, that's different.
+                        // But "saved-as or loaded" usually implies file association.
+                        
                         const writable = await handle.createWritable();
                         await writable.write(blob);
                         await writable.close();
@@ -341,6 +363,29 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         }
     }, [addNotification]);
 
+    const saveProject = useCallback(async (silent = false) => {
+        // If we have a path (Tauri), use it.
+        if (isTauri() && currentPathRef.current) {
+            try {
+                 const projectData = {
+                    version: 1,
+                    series: seriesRef.current,
+                    plotSettings: plotSettingsRef.current,
+                    viewMode: viewModeRef.current
+                };
+                const content = JSON.stringify(projectData, null, 2);
+                await invoke('save_text_file', { path: currentPathRef.current, content });
+                if (!silent) addNotification('success', 'Project saved successfully');
+            } catch(e) {
+                 console.error('Failed to save project:', e);
+                 if (!silent) addNotification('error', 'Failed to save project'); 
+            }
+        } else {
+            // Fallback to Save As
+            await saveProjectAs();
+        }
+    }, [saveProjectAs, addNotification]);
+
     const loadProject = useCallback(async () => {
         try {
             let content = "";
@@ -354,6 +399,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
                 });
 
                 if (!path) return;
+                currentPathRef.current = path; // Update current path
+                setHasSavedPath(true);
                 content = await invoke('read_text_file_custom', { path }) as string;
             } else {
                 content = await new Promise<string>((resolve, reject) => {
@@ -415,6 +462,16 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         }
     }, [_setSeries, _setPlotSettings, recordAction, addNotification]);
 
+    useEffect(() => {
+        if (!autoSaveEnabled || !hasSavedPath || !currentPathRef.current || !isTauri()) return;
+
+        const timer = setTimeout(() => {
+            saveProject(true);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, [series, plotSettings, viewMode, autoSaveEnabled, hasSavedPath, saveProject]);
+
     return (
         <ProjectContext.Provider value={{
             series,
@@ -434,9 +491,13 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
             future,
             recordAction,
             saveProject,
+            saveProjectAs,
             loadProject,
             startTransaction,
-            commitTransaction
+            commitTransaction,
+            autoSaveEnabled,
+            toggleAutoSave: () => setAutoSaveEnabled(prev => !prev),
+            hasSavedPath
         }}>
             {children}
         </ProjectContext.Provider>
