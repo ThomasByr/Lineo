@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "preact/hooks";
 import "./App.css";
+import { MenuBar } from "./components/MenuBar";
+import { AboutModal } from "./components/AboutModal";
 import { DataTab } from "./components/DataTab";
 import { SettingsTab } from "./components/SettingsTab";
 import { GlobalSettingsTab } from "./components/GlobalSettingsTab";
@@ -38,6 +40,17 @@ function App() {
     toggleAutoSave,
     hasSavedPath
   } = useProject();
+
+  const [appZoom, setAppZoom] = useState(() => {
+      const saved = localStorage.getItem('appZoom');
+      return saved ? parseFloat(saved) : 1;
+  });
+
+  useEffect(() => {
+      localStorage.setItem('appZoom', appZoom.toString());
+  }, [appZoom]);
+
+  const [showAbout, setShowAbout] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'data' | 'plot' | 'approx' | 'settings'>('data');
   const [editingSeriesId, setEditingSeriesId] = useState<string | null>(null);
@@ -153,7 +166,9 @@ function App() {
   };
 
   return (
-    <main className="container">
+    <div style={{ zoom: appZoom, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <MenuBar zoom={appZoom} setZoom={setAppZoom} onOpenAbout={() => setShowAbout(true)} />
+      <main className="container" style={{ flex: 1, padding: '0 20px 20px', height: 'auto' }}>
       <ToastContainer />
       <div className="header-row">
         <div className="toolbar-group">
@@ -349,6 +364,8 @@ function App() {
         </div>
       </div>
     </main>
+    {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+    </div>
   );
 }
 
