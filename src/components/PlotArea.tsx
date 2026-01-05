@@ -490,49 +490,56 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
 
   const datasets = series.flatMap(s => {
       const ds = [];
-      if (s.visible) {
-          ds.push({
-              label: s.name,
-              data: s.data,
-              backgroundColor: s.color,
-              borderColor: s.color,
-              borderWidth: s.width,
-              borderDash: s.lineStyle === 'dashed' ? [5, 5] : s.lineStyle === 'dotted' ? [2, 2] : [],
-              showLine: s.showLine,
-              type: "scatter" as const,
-              pointRadius: s.pointSize,
-              pointStyle: s.pointStyle,
-          });
-          
-          if (s.regression.type !== 'none' && s.regressionPoints.length > 0) {
-              ds.push({
-                  label: `${s.name} (${s.regression.type})`,
-                  data: s.regressionPoints,
-                  borderColor: s.regression.color,
-                  borderWidth: s.regression.width,
-                  borderDash: s.regression.style === 'dashed' ? [5, 5] : s.regression.style === 'dotted' ? [2, 2] : [],
-                  showLine: true,
-                  pointRadius: 0,
-                  type: "scatter" as const,
-                  isRegression: true
-              } as any);
-          }
+      const isHidden = !s.visible;
 
-          // Render manual points handles if editing
-          if (editingSeriesId === s.id && s.regression.manualPoints) {
-              ds.push({
-                  label: `${s.name} Handles`,
-                  data: s.regression.manualPoints,
-                  backgroundColor: 'rgba(255, 0, 0, 0.7)',
-                  borderColor: 'white',
-                  borderWidth: 2,
-                  pointRadius: 6,
-                  pointHoverRadius: 8,
-                  type: "scatter" as const,
-                  isHandle: true
-              } as any);
-          }
+      ds.push({
+          label: s.name,
+          data: s.data,
+          backgroundColor: s.color,
+          borderColor: s.color,
+          borderWidth: s.width,
+          borderDash: s.lineStyle === 'dashed' ? [5, 5] : s.lineStyle === 'dotted' ? [2, 2] : [],
+          showLine: s.showLine,
+          type: "scatter" as const,
+          pointRadius: s.pointSize,
+          pointStyle: s.pointStyle,
+          hidden: isHidden,
+          seriesId: s.id
+      } as any);
+      
+      if (s.regression.type !== 'none' && s.regressionPoints.length > 0) {
+          ds.push({
+              label: `${s.name} (${s.regression.type})`,
+              data: s.regressionPoints,
+              borderColor: s.regression.color,
+              borderWidth: s.regression.width,
+              borderDash: s.regression.style === 'dashed' ? [5, 5] : s.regression.style === 'dotted' ? [2, 2] : [],
+              showLine: true,
+              pointRadius: 0,
+              type: "scatter" as const,
+              isRegression: true,
+              hidden: isHidden,
+              seriesId: s.id
+          } as any);
       }
+
+      // Render manual points handles if editing
+      if (editingSeriesId === s.id && s.regression.manualPoints) {
+          ds.push({
+              label: `${s.name} Handles`,
+              data: s.regression.manualPoints,
+              backgroundColor: 'rgba(255, 0, 0, 0.7)',
+              borderColor: 'white',
+              borderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              type: "scatter" as const,
+              isHandle: true,
+              hidden: isHidden,
+              seriesId: s.id
+          } as any);
+      }
+
       return ds;
   });
 
@@ -707,6 +714,25 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
             position: 'bottom',
             labels: {
                 usePointStyle: true
+            },
+            onClick: (e: any, legendItem: any, legend: any) => {
+                const index = legendItem.datasetIndex;
+                const dataset = legend.chart.data.datasets[index];
+                if (dataset.seriesId && updateSeries) {
+                    const s = series.find(ser => ser.id === dataset.seriesId);
+                    if (s) {
+                        updateSeries(s.id, { visible: !s.visible });
+                    }
+                } else {
+                    const ci = legend.chart;
+                    if (ci.isDatasetVisible(index)) {
+                        ci.hide(index);
+                        legendItem.hidden = true;
+                    } else {
+                        ci.show(index);
+                        legendItem.hidden = false;
+                    }
+                }
             }
         },
         tooltip: {
