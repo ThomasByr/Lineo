@@ -166,15 +166,15 @@ function App() {
   };
 
   return (
-    <div style={{
-        transform: `scale(${appZoom})`,
-        transformOrigin: '0 0',
-        width: `${100 / appZoom}vw`,
-        height: `${100 / appZoom}vh`,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-    }}>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      <div style={{
+          transform: `scale(${appZoom})`,
+          transformOrigin: '0 0',
+          width: `${100 / appZoom}%`,
+          height: `${100 / appZoom}%`,
+          display: 'flex',
+          flexDirection: 'column'
+      }}>
       <MenuBar zoom={appZoom} setZoom={setAppZoom} onOpenAbout={() => setShowAbout(true)} />
       <main className="container" style={{ flex: 1, padding: '0 20px 20px', height: 'auto' }}>
       <ToastContainer />
@@ -373,6 +373,7 @@ function App() {
       </div>
     </main>
     {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+      </div>
     </div>
   );
 }
