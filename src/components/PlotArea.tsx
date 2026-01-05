@@ -108,6 +108,44 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, u
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [autoCrop, setAutoCrop] = useState(true);
+  const [wrapperStyle, setWrapperStyle] = useState<any>({ width: '100%', height: '100%' });
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const updateSize = () => {
+         if (!containerRef.current) return;
+         const { width, height } = containerRef.current.getBoundingClientRect();
+         if (!plotSettings?.aspectRatio) {
+             setWrapperStyle({ width: '100%', height: '100%' });
+             return;
+         }
+         
+         const targetRatio = plotSettings.aspectRatio;
+         const containerRatio = width / height;
+         
+         // Use a small buffer to avoid oscillation
+         if (containerRatio > targetRatio) {
+             // Container is wider than chart -> Fill Height
+             setWrapperStyle({
+                 height: '100%',
+                 width: `${height * targetRatio}px`
+             });
+         } else {
+             // Container is taller than chart -> Fill Width
+             setWrapperStyle({
+                 width: '100%',
+                 height: `${width / targetRatio}px`
+             });
+         }
+    };
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(containerRef.current);
+    updateSize();
+
+    return () => observer.disconnect();
+  }, [plotSettings?.aspectRatio]);
 
   useEffect(() => {
     if (plotSettings?.legendPosition && !isDraggingLegend) {
@@ -652,6 +690,7 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, u
   };
 
   const options: any = {
+    maintainAspectRatio: false,
     scales: {
       x: {
         type: "linear" as const,
@@ -813,9 +852,16 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, u
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}
+        style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <Scatter ref={chartRef} data={data} options={options} />
+        <div style={{ position: 'relative', ...wrapperStyle }}>
+            <Scatter 
+                ref={chartRef} 
+                data={data} 
+                options={options} 
+                key={plotSettings?.aspectRatio || 'auto'} 
+            />
+        </div>
         
         {plotSettings?.showLegend && (
             <div 

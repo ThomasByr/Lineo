@@ -71,6 +71,7 @@ const DEFAULT_PLOT_SETTINGS: PlotSettings = {
     gridLineWidthY: 1,
     axisLineWidthX: 1,
     axisLineWidthY: 1,
+    aspectRatio: 16/9,
     legendPosition: { x: 60, y: 20 }
 };
 

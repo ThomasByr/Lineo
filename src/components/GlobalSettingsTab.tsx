@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import { PlotSettings, ViewMode, TextStyle } from "../types";
 import { NumberInput } from "./NumberInput";
 import { Toggle } from "./Toggle";
+import { CustomSelect } from "./CustomSelect";
 
 function TextStyleControls({ style, onChange }: { style: TextStyle, onChange: (s: TextStyle) => void }) {
     const btnStyle = (active: boolean) => ({
@@ -91,6 +92,30 @@ export function GlobalSettingsTab({ plotSettings, setPlotSettings, viewMode, sta
                                 onBlur={() => commitTransaction?.("Update title font size")}
                                 onChange={(val) => setPlotSettings({...plotSettings, titleFontSize: val || 16})} 
                                 labelClassName="size-label"
+                            />
+                        </div>
+                    </div>
+
+                    <hr className="sidebar-divider" />
+
+                    <div className="settings-section">
+                        <label className="inline-label">Aspect Ratio</label>
+                        <div className="control-group">
+                             <CustomSelect 
+                                value={plotSettings.aspectRatio?.toString() || 'auto'}
+                                options={[
+                                    { value: 'auto', label: 'Auto (Fill)' },
+                                    { value: '1', label: '1:1 (Square)' },
+                                    { value: (4/3).toString(), label: '4:3' },
+                                    { value: (16/9).toString(), label: '16:9' },
+                                    { value: (21/9).toString(), label: '21:9' }
+                                ]}
+                                onChange={(val) => {
+                                    startTransaction?.();
+                                    const ratio = val === 'auto' ? undefined : parseFloat(val);
+                                    setPlotSettings({...plotSettings, aspectRatio: ratio});
+                                    commitTransaction?.("Change aspect ratio");
+                                }}
                             />
                         </div>
                     </div>

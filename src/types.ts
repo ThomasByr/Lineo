@@ -83,6 +83,7 @@ export interface PlotSettings {
   xMax?: number;
   yMin?: number;
   yMax?: number;
+  aspectRatio?: number;
   legendPosition?: { x: number, y: number };
 }
 
