@@ -37,7 +37,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: "npm"
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -80,6 +79,6 @@ jobs:
           tagName: v${{ env.VERSION }}
           releaseName: v${{ env.VERSION }}
           releaseBody: "${{ steps.changelog.outputs.changelog }}"
-          releaseDraft: true
-          prerelease: true
+          releaseDraft: false
+          prerelease: false
           args: ${{ matrix.args }}
