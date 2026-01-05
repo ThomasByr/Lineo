@@ -52,6 +52,16 @@ export function GlobalSettingsTab({ plotSettings, setPlotSettings, viewMode }: G
                     <div className="settings-section">
                         <div className="control-group">
                             <Toggle 
+                                label="Hide system legend on export" 
+                                checked={plotSettings.hideSystemLegendOnExport} 
+                                onChange={(checked) => setPlotSettings({...plotSettings, hideSystemLegendOnExport: checked})}
+                                onLabel="Yes"
+                                offLabel="No"
+                            />
+                        </div>
+
+                        <div className="control-group">
+                            <Toggle 
                                 label="Legend" 
                                 checked={plotSettings.showLegend} 
                                 onChange={(checked) => setPlotSettings({...plotSettings, showLegend: checked})}

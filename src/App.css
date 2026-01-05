@@ -699,12 +699,13 @@ input[type="file"] {
 
 
 /* Modern Toggle Switch */
-.toggle-container {
+label.toggle-container {
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
   user-select: none;
+  margin-bottom: 0; /* Override .control-group label margin */
 }
 
 .toggle-switch {

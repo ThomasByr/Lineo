@@ -63,6 +63,14 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
         return;
       }
 
+      const chart = chartRef.current;
+      const shouldHideLegend = plotSettings?.showLegend && plotSettings?.hideSystemLegendOnExport;
+
+      if (shouldHideLegend && chart && chart.options.plugins?.legend) {
+          chart.options.plugins.legend.display = false;
+          chart.update();
+      }
+
       try {
         const bytes = await captureCanvas(containerRef.current, format);
         // Cast to any to avoid "SharedArrayBuffer" type mismatch error
@@ -72,6 +80,11 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
       } catch (err) {
           console.error('Failed to export', err);
           addNotification('error', 'Failed to export chart.');
+      } finally {
+          if (shouldHideLegend && chart && chart.options.plugins?.legend) {
+              chart.options.plugins.legend.display = true;
+              chart.update();
+          }
       }
   };
 
@@ -81,6 +94,15 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
         addNotification('error', "Chart not ready yet");
         return;
       }
+
+      const chart = chartRef.current;
+      const shouldHideLegend = plotSettings?.showLegend && plotSettings?.hideSystemLegendOnExport;
+
+      if (shouldHideLegend && chart && chart.options.plugins?.legend) {
+          chart.options.plugins.legend.display = false;
+          chart.update();
+      }
+
       try {
           const bytes = await captureCanvas(containerRef.current, 'png');
           // Cast to any to avoid "SharedArrayBuffer" type mismatch error
@@ -90,6 +112,11 @@ export function PlotArea({ series, onAddSeries, editingSeriesId, updateSeries, v
       } catch (err) {
           console.error('Failed to copy', err);
           addNotification('error', `Failed to copy to clipboard: ${err}`);
+      } finally {
+          if (shouldHideLegend && chart && chart.options.plugins?.legend) {
+              chart.options.plugins.legend.display = true;
+              chart.update();
+          }
       }
   };
 

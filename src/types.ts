@@ -62,6 +62,7 @@ export interface PlotSettings {
   xTickLabelFontSize: number;
   yTickLabelFontSize: number;
   showLegend: boolean;
+  hideSystemLegendOnExport: boolean;
   legendFontSize: number;
   showGridX: boolean;
   showGridY: boolean;

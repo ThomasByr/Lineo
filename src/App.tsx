@@ -28,6 +28,7 @@ function App() {
     xTickLabelFontSize: 10,
     yTickLabelFontSize: 10,
     showLegend: true,
+    hideSystemLegendOnExport: true,
     legendFontSize: 12,
     showGridX: true,
     showGridY: true,
