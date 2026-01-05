@@ -1,4 +1,4 @@
-# Linéo
+# <img src="public/icon.png" alt="Linéo Logo" width="32" height="32" /> Linéo
 
 > Create figures with beautiful approximation curves with few points.
 
@@ -9,7 +9,8 @@
 
 1. [Installation](#installation)
 2. [Usage](#usage)
-3. [TODO and Bugs](#todo-and-bugs)
+3. [Deploying Linéo as a Website](#deploying-linéo-as-a-website)
+4. [TODO and Bugs](#todo-and-bugs)
 
 ## Installation
 
@@ -79,8 +80,6 @@ You can host the contents of the `dist` directory on any static site hosting pro
 - Vercel
 - Netlify
 - Cloudflare Pages
-
-### GitHub Pages (Automated)
 
 A GitHub Actions workflow has been included to automatically deploy to GitHub Pages.
 
