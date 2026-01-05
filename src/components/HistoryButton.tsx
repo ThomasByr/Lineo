@@ -91,36 +91,17 @@ export function HistoryButton({ icon, onClick, disabled, items, onItemClick, tit
                 {icon}
             </button>
             {showList && (
-                <div className="history-list" ref={listRef} style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    backgroundColor: 'var(--bg-color, #fff)',
-                    border: '1px solid var(--border-color, #ccc)',
-                    zIndex: 1000,
-                    maxHeight: '300px',
-                    overflowY: 'auto',
-                    width: '200px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                    borderRadius: '4px',
-                    color: 'var(--text-color, #000)'
-                }}>
+                <div className="history-list" ref={listRef}>
                     {items.slice().reverse().map((item, i) => (
                         <div 
                             key={i} 
                             className="history-item"
-                            onClick={() => {
+                            onMouseDown={(e) => {
+                                // Use onMouseDown to prevent focus loss before click
+                                e.preventDefault();
                                 onItemClick(i + 1);
                                 setShowList(false);
                             }}
-                            style={{ 
-                                padding: '8px', 
-                                cursor: 'pointer', 
-                                borderBottom: '1px solid var(--border-color, #eee)',
-                                fontSize: '12px'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                             {item.description}
                         </div>
