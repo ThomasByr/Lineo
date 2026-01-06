@@ -176,7 +176,7 @@ function App() {
           flexDirection: 'column'
       }}>
       <MenuBar zoom={appZoom} setZoom={setAppZoom} onOpenAbout={() => setShowAbout(true)} />
-      <main className="container" style={{ flex: 1, padding: '0 20px 20px', height: 'auto' }}>
+      <main className="container" style={{ flex: 1, padding: '0 20px 20px', overflow: 'hidden', minHeight: 0 }}>
       <ToastContainer />
       <div className="header-row">
         <div className="toolbar-group">
