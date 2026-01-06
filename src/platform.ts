@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open as tauriOpen, save as tauriSave } from "@tauri-apps/plugin-dialog";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { writeImage as tauriWriteImage } from "@tauri-apps/plugin-clipboard-manager";
 import { Image as TauriImage } from "@tauri-apps/api/image";
 import { DataPoint } from "./types";
@@ -144,5 +144,13 @@ export async function openExternal(url: string): Promise<void> {
     await openUrl(url);
   } else {
     window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
+
+export async function showInFolder(path: string): Promise<void> {
+  if (isTauri()) {
+    await revealItemInDir(path);
+  } else {
+    console.warn("Show in folder is not supported on web");
   }
 }

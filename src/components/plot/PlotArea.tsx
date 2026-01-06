@@ -12,7 +12,7 @@ import {
 } from "chart.js";
 import { Scatter } from "react-chartjs-2";
 import fitCurve from "fit-curve";
-import { saveImage, copyImageToClipboard } from "../../platform";
+import { saveImage, copyImageToClipboard, isTauri, showInFolder } from "../../platform";
 import { Series, DataPoint, ViewMode, PlotSettings } from "../../types";
 import { calculateRegression } from "../../regressionHelper";
 import zoomPlugin from "chartjs-plugin-zoom";
@@ -186,7 +186,15 @@ export function PlotArea({
              // Just filename (Web)
              message = `Chart exported as ${savedPath}`;
         }
-        addNotification("success", message);
+        
+        if (isTauri()) {
+          addNotification("success", message, {
+            label: "Open Folder",
+            onClick: () => showInFolder(savedPath),
+          });
+        } else {
+          addNotification("success", message);
+        }
       }
     } catch (err) {
       console.error("Failed to export", err);
