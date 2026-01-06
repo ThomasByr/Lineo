@@ -163,8 +163,31 @@ export function PlotArea({
       const blob = new Blob([bytes as any], {
         type: format === "jpg" ? "image/jpeg" : "image/png",
       });
-      await saveImage(blob, `chart.${format}`);
-      addNotification("success", `Chart exported successfully!`);
+      const savedPath = await saveImage(blob, `chart.${format}`);
+      if (savedPath) {
+        let message = `Chart exported as ${savedPath}`;
+        if (savedPath.includes("/")) {
+            // Unix path
+            const parts = savedPath.split("/");
+            const fileName = parts.pop();
+            const folderName = parts.pop();
+             if (fileName && folderName) {
+                message = `Chart exported as ${fileName} in ${folderName}`;
+            }
+        } else if (savedPath.includes("\\")) {
+             // Windows path
+            const parts = savedPath.split("\\");
+            const fileName = parts.pop();
+            const folderName = parts.pop();
+            if (fileName && folderName) {
+                message = `Chart exported as ${fileName} in ${folderName}`;
+            }
+        } else {
+             // Just filename (Web)
+             message = `Chart exported as ${savedPath}`;
+        }
+        addNotification("success", message);
+      }
     } catch (err) {
       console.error("Failed to export", err);
       addNotification("error", "Failed to export chart.");
