@@ -71,7 +71,7 @@ export function PlotArea({
   const [_, forceUpdate] = useState(0);
 
   // Custom Legend State
-  const [legendPos, setLegendPos] = useState(plotSettings?.legendPosition || { x: 60, y: 20 });
+  const [legendPos, setLegendPos] = useState(plotSettings?.legendPosition || { x: 100, y: 100 });
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [autoCrop, setAutoCrop] = useState(true);

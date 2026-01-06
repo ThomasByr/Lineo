@@ -75,7 +75,7 @@ const DEFAULT_PLOT_SETTINGS: PlotSettings = {
   axisLineWidthX: 1,
   axisLineWidthY: 1,
   aspectRatio: 16 / 9,
-  legendPosition: { x: 60, y: 20 },
+  legendPosition: { x: 100, y: 100 },
 };
 
 export function ProjectProvider({ children }: { children: ComponentChildren }) {
