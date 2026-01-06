@@ -91,7 +91,7 @@ input[type="file"] {
 }
 
 /* Modern Toggle Switch */
-label.toggle-container {
+label.toggle-container.toggle-container { /* Double class to increase specificity over .control-group label */
   display: flex;
   align-items: center;
   gap: 10px;
