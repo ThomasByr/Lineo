@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "preact/hooks";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./styles/forms.css";
 import "./App.css";
 import "./components/notifications/Notifications.css";
@@ -53,6 +54,17 @@ function App() {
     const saved = localStorage.getItem("appZoom");
     return saved ? parseFloat(saved) : 1;
   });
+
+  useEffect(() => {
+    const showWindow = async () => {
+      try {
+        await getCurrentWindow().show();
+      } catch (err) {
+        // Likely running in browser
+      }
+    };
+    showWindow();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("appZoom", appZoom.toString());
