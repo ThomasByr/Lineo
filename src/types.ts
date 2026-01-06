@@ -3,18 +3,18 @@ export interface DataPoint {
   y: number;
 }
 
-export type RegressionType = 
-  | 'none'
-  | 'linear' 
-  | 'polynomial' 
-  | 'exponential' 
-  | 'logarithmic' 
-  | 'power'
-  | 'sqrt'
-  | 'sinusoidal'
-  | 'negativeExponential'
-  | 'spline'
-  | 'manual';
+export type RegressionType =
+  | "none"
+  | "linear"
+  | "polynomial"
+  | "exponential"
+  | "logarithmic"
+  | "power"
+  | "sqrt"
+  | "sinusoidal"
+  | "negativeExponential"
+  | "spline"
+  | "manual";
 
 export interface ManualParameter {
   value: number;
@@ -28,9 +28,9 @@ export interface RegressionSettings {
   forceOrigin?: boolean; // For linear
   color: string;
   width: number;
-  style: 'solid' | 'dashed' | 'dotted';
-  
-  mode: 'auto' | 'manual';
+  style: "solid" | "dashed" | "dotted";
+
+  mode: "auto" | "manual";
   parameters?: Record<string, ManualParameter>;
   manualPoints?: DataPoint[];
 }
@@ -44,9 +44,9 @@ export interface Series {
   color: string;
   width: number;
   showLine: boolean;
-  lineStyle: 'solid' | 'dashed' | 'dotted';
+  lineStyle: "solid" | "dashed" | "dotted";
   pointSize: number;
-  pointStyle: 'circle' | 'rect' | 'triangle' | 'cross' | 'star';
+  pointStyle: "circle" | "rect" | "triangle" | "cross" | "star";
   // Regression/Approximation
   regression: RegressionSettings;
   regressionPoints: DataPoint[]; // Calculated points
@@ -84,12 +84,12 @@ export interface PlotSettings {
   yMin?: number;
   yMax?: number;
   aspectRatio?: number;
-  legendPosition?: { x: number, y: number };
+  legendPosition?: { x: number; y: number };
 }
 
-export type ViewMode = 'auto' | 'manual' | 'locked';
+export type ViewMode = "auto" | "manual" | "locked";
 
-export type NotificationType = 'success' | 'error' | 'info' | 'warning';
+export type NotificationType = "success" | "error" | "info" | "warning";
 
 export interface AppNotification {
   id: string;

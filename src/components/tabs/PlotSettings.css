@@ -1,0 +1,165 @@
+.plot-settings-controls {
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+  flex-shrink: 0;
+}
+
+:root.dark .plot-settings-controls {
+  border-top-color: #444;
+}
+
+.plot-settings-title {
+  font-size: 1.1em;
+  margin-bottom: 15px;
+}
+
+.plot-controls-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  align-items: center;
+}
+
+.settings-section {
+  flex: 1 1 auto;
+}
+
+.inline-control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inline-label {
+  margin-bottom: 0;
+  font-weight: bold;
+  color: #555;
+  white-space: nowrap;
+}
+
+:root.dark .inline-label {
+  color: #aaa;
+}
+
+.flex-input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.size-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.size-label {
+  font-size: 0.8em;
+  color: #666;
+}
+
+:root.dark .size-label {
+  color: #aaa;
+}
+
+.size-input {
+  width: 70px;
+  padding: 6px 8px;
+}
+
+.vertical-divider {
+  width: 1px;
+  background-color: #eee;
+  height: 40px;
+}
+
+:root.dark .vertical-divider {
+  background-color: #444;
+}
+
+.settings-section-large {
+  flex: 2 1 auto;
+}
+
+.settings-section-small {
+  flex: 0 0 auto;
+}
+
+.axes-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.axis-control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 250px;
+}
+
+.axis-label {
+  margin-bottom: 0;
+  white-space: nowrap;
+  font-weight: bold;
+  color: #555;
+}
+
+:root.dark .axis-label {
+  color: #aaa;
+}
+
+.axis-input {
+  flex: 1;
+  min-width: 80px;
+}
+
+.legend-container {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: center;
+}
+
+.legend-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Sidebar Settings Styles */
+.sidebar-settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sidebar-divider {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 10px 0;
+  width: 100%;
+}
+
+:root.dark .sidebar-divider {
+  border-top-color: #444;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-group label {
+  margin-bottom: 0;
+  display: inline;
+}
+
+.checkbox-group input {
+  margin: 0;
+}

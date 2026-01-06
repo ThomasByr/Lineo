@@ -8,7 +8,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "release": "release-it"
+    "release": "release-it",
+    "format": "npm run format:frontend && npm run format:backend",
+    "format:frontend": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "format:backend": "cd src-tauri && cargo fmt"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -30,6 +33,7 @@
     "@preact/preset-vite": "^2.9.3",
     "@release-it/bumper": "^7.0.5",
     "@tauri-apps/cli": "^2",
+    "prettier": "^3.7.4",
     "release-it": "^19.2.2",
     "typescript": "~5.6.2",
     "vite": "^6.0.3"

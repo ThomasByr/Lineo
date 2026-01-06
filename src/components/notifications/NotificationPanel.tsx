@@ -1,6 +1,6 @@
-import { useNotification } from '../contexts/NotificationContext';
-import { NotificationCard } from './NotificationCard';
-import { useEffect, useRef } from 'preact/hooks';
+import { useNotification } from "../../contexts/NotificationContext";
+import { NotificationCard } from "./NotificationCard";
+import { useEffect, useRef } from "preact/hooks";
 
 export function NotificationPanel() {
   const { notifications, isPanelOpen, closePanel, clearAllNotifications, markAsRead } = useNotification();
@@ -8,30 +8,32 @@ export function NotificationPanel() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node) && 
-          !(event.target as Element).closest('.notification-bell-btn')) {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(event.target as Node) &&
+        !(event.target as Element).closest(".notification-bell-btn")
+      ) {
         closePanel();
       }
     };
 
     if (isPanelOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
-    
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isPanelOpen, closePanel]);
 
   useEffect(() => {
-      if (isPanelOpen) {
-          const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
-          if (unreadIds.length > 0) {
-              unreadIds.forEach(id => markAsRead(id));
-          }
+    if (isPanelOpen) {
+      const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+      if (unreadIds.length > 0) {
+        unreadIds.forEach((id) => markAsRead(id));
       }
+    }
   }, [isPanelOpen, notifications, markAsRead]);
-
 
   if (!isPanelOpen) return null;
 
@@ -49,7 +51,7 @@ export function NotificationPanel() {
         {notifications.length === 0 ? (
           <p className="no-notifications">No notifications</p>
         ) : (
-          notifications.map(notification => (
+          notifications.map((notification) => (
             <NotificationCard key={notification.id} notification={notification} />
           ))
         )}

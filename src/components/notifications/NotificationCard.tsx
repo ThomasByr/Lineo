@@ -1,5 +1,5 @@
-import { AppNotification } from '../types';
-import { useNotification } from '../contexts/NotificationContext';
+import { AppNotification } from "../../types";
+import { useNotification } from "../../contexts/NotificationContext";
 
 interface NotificationCardProps {
   notification: AppNotification;
@@ -22,9 +22,7 @@ export function NotificationCard({ notification, onDismiss }: NotificationCardPr
     <div className={`notification-card ${notification.type}`}>
       <div className="notification-content">
         <p className="notification-message">{notification.message}</p>
-        <span className="notification-time">
-          {new Date(notification.timestamp).toLocaleTimeString()}
-        </span>
+        <span className="notification-time">{new Date(notification.timestamp).toLocaleTimeString()}</span>
       </div>
       <button className="notification-close" onClick={handleRemove as any} aria-label="Dismiss">
         ×

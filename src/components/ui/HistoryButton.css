@@ -1,0 +1,48 @@
+/* History Button Styles */
+.history-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  min-width: 200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  color: #000;
+  text-align: left;
+}
+
+.history-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: background-color 0.1s;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-item:hover {
+  background-color: #f0f0f0;
+}
+
+:root.dark .history-list {
+  background-color: #1a1a1a;
+  border-color: #444;
+  color: #f6f6f6;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark .history-item {
+  border-bottom-color: #333;
+}
+
+:root.dark .history-item:hover {
+  background-color: #333;
+}
