@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open as tauriOpen, save as tauriSave } from "@tauri-apps/plugin-dialog";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { writeImage as tauriWriteImage } from "@tauri-apps/plugin-clipboard-manager";
 import { Image as TauriImage } from "@tauri-apps/api/image";
 import { DataPoint } from "./types";
@@ -126,5 +127,13 @@ export async function copyImageToClipboard(blob: Blob): Promise<void> {
                 [blob.type]: blob
             })
         ]);
+    }
+}
+
+export async function openExternal(url: string): Promise<void> {
+    if (isTauri()) {
+        await openUrl(url);
+    } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
     }
 }

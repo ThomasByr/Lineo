@@ -1,3 +1,5 @@
+import { openExternal } from '../../platform';
+
 interface AboutModalProps {
     onClose: () => void;
 }
@@ -26,6 +28,7 @@ export function AboutModal({ onClose }: AboutModalProps) {
                 <p>Linéo is a lightweight, high-performance data visualization and regression analysis tool.</p>
                 <p>Version: {__APP_VERSION__}</p>
                 <p>Build with Tauri & Preact.</p>
+                <p>Author: ThomasByr - <a href="#" onClick={(e) => {e.preventDefault(); openExternal("https://github.com/thomasbyr")}} style={{color: 'var(--text-color, #000)'}}>GitHub</a> | <a href="#" onClick={(e) => {e.preventDefault(); openExternal("https://github.com/thomasbyr/lineo")}} style={{color: 'var(--text-color, #000)'}}>Project</a></p>
                 <div style={{marginTop: '20px', textAlign: 'right'}}>
                     <button onClick={onClose} style={{
                         padding: '8px 16px',
