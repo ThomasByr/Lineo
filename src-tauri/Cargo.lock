@@ -2103,7 +2103,7 @@ dependencies = [
 
 [[package]]
 name = "lineo"
-version = "0.1.3"
+version = "1.0.0"
 dependencies = [
  "calamine",
  "serde",
