@@ -182,7 +182,13 @@ function App() {
           display: 'flex',
           flexDirection: 'column'
       }}>
-      <MenuBar zoom={appZoom} setZoom={setAppZoom} onOpenAbout={() => setShowAbout(true)} />
+      <MenuBar 
+        zoom={appZoom} 
+        setZoom={setAppZoom} 
+        onOpenAbout={() => setShowAbout(true)} 
+        theme={theme}
+        setTheme={setTheme}
+      />
       <main className="container" style={{ flex: 1, padding: '0 20px 20px', overflow: 'hidden', minHeight: 0 }}>
       <ToastContainer />
       <div className="header-row">

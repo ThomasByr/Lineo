@@ -6,9 +6,11 @@ interface MenuBarProps {
     zoom: number;
     setZoom: (z: number) => void;
     onOpenAbout: () => void;
+    theme: 'light' | 'dark';
+    setTheme: (t: 'light' | 'dark') => void;
 }
 
-export function MenuBar({ zoom, setZoom, onOpenAbout }: MenuBarProps) {
+export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBarProps) {
     const { saveProject, saveProjectAs, loadProject, undo, redo, canUndo, canRedo, hasSavedPath } = useProject();
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -100,6 +102,10 @@ export function MenuBar({ zoom, setZoom, onOpenAbout }: MenuBarProps) {
                             <span className="zoom-value">{Math.round(zoom * 100)}%</span>
                             <button className="zoom-btn" onClick={(e) => { e.stopPropagation(); handleZoom(0.1); }}>+</button>
                         </div>
+                    </div>
+                    <div className="menu-divider"></div>
+                    <div className="menu-option" onClick={() => handleAction(() => setTheme(theme === 'light' ? 'dark' : 'light'))}>
+                        <span>{theme === 'light' ? 'Switch to Dark Mode 🌙' : 'Switch to Light Mode ☀️'}</span>
                     </div>
                 </div>
             </div>
