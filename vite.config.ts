@@ -47,4 +47,16 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['preact', 'preact/hooks', 'preact/compat'],
+          charting: ['chart.js', 'react-chartjs-2', 'chartjs-plugin-zoom'],
+          tauri: ['@tauri-apps/api', '@tauri-apps/plugin-dialog', '@tauri-apps/plugin-fs', '@tauri-apps/plugin-opener', '@tauri-apps/plugin-clipboard-manager'],
+          utils: ['papaparse', 'html2canvas', 'fit-curve', 'regression'],
+        },
+      },
+    },
+  },
 }));
