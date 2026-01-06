@@ -5,7 +5,7 @@ import { createSeries } from "../utils";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useNotification } from "./NotificationContext";
-import { isTauri } from "../platform";
+import { isTauri, showInFolder } from "../platform";
 
 interface HistoryAction {
   description: string;
@@ -448,8 +448,19 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         currentPathRef.current = path; // Update current path
         setHasSavedPath(true);
         await invoke("save_text_file", { path, content });
-        const fileName = path.split(/[/\\]/).pop() || "project";
-        addNotification("success", `Project saved as ${fileName}`);
+        
+        let message = `Project saved as ${path.split(/[/\\]/).pop() || "project"}`;
+        const parts = path.split(/[/\\]/);
+        const fileName = parts.pop();
+        const folderName = parts.pop();
+        if (fileName && folderName) {
+          message = `Project saved as ${fileName} in ${folderName}`;
+        }
+
+        addNotification("success", message, {
+          label: "Open Folder",
+          onClick: () => showInFolder(path),
+        });
       } else {
         const blob = new Blob([content], { type: "application/json" });
 
