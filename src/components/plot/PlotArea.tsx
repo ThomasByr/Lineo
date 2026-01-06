@@ -146,6 +146,13 @@ export function PlotArea({
     const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
     let restoreRequired = false;
     let originalGenerateLabels: any = null;
+    let originalDPR: number | null = null;
+
+    if (chart) {
+       originalDPR = chart.options.devicePixelRatio || null;
+       chart.options.devicePixelRatio = exportScale;
+       chart.resize();
+    }
 
     if (shouldHideLegend && chart) {
       // @ts-ignore
@@ -212,6 +219,10 @@ export function PlotArea({
       console.error("Failed to export", err);
       addNotification("error", "Failed to export chart.");
     } finally {
+      if (originalDPR !== null && chart) {
+        chart.options.devicePixelRatio = originalDPR || 1;
+        chart.resize();
+      }
       if (restoreRequired && chart) {
         if (originalGenerateLabels) {
           // @ts-ignore
@@ -236,6 +247,13 @@ export function PlotArea({
     const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
     let restoreRequired = false;
     let originalGenerateLabels: any = null;
+    let originalDPR: number | null = null;
+
+    if (chart) {
+       originalDPR = chart.options.devicePixelRatio || null;
+       chart.options.devicePixelRatio = exportScale;
+       chart.resize();
+    }
 
     if (shouldHideLegend && chart) {
       // @ts-ignore
@@ -269,6 +287,10 @@ export function PlotArea({
       console.error("Failed to copy", err);
       addNotification("error", `Failed to copy to clipboard: ${err}`);
     } finally {
+      if (originalDPR !== null && chart) {
+        chart.options.devicePixelRatio = originalDPR || 1;
+        chart.resize();
+      }
       if (restoreRequired && chart) {
         if (originalGenerateLabels) {
           // @ts-ignore
