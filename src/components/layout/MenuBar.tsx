@@ -23,8 +23,17 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
             }
         };
 
+        const handleBlur = () => {
+             setActiveMenu(null);
+        };
+
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        window.addEventListener("blur", handleBlur); 
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            window.removeEventListener("blur", handleBlur);
+        };
     }, []);
 
     const toggleMenu = (menu: string) => {
