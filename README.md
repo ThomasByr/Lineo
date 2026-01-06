@@ -57,8 +57,11 @@ On the above image:
    - **Enter draw mode**: allows you to draw points directly on the canvas with the mouse and exporting them as a "serie".
    - **Export PNG/JPG**: export the current canvas as an image.
    - **Copy to clipboard**: copy the current canvas to the clipboard as an image.
+   - **Auto Crop**: automatically crops exported images to tightly fit the content.
 3. App settings: change the zoom mode, switch from dark to light theme, and access recent action outcomes.
 4. The canvas displays the figures. You can zoom in/out with the mouse wheel and pan by clicking and dragging (on manual zoom mode).
+5. Save/Open project: save your current project to a file or open a previously saved project.
+6. Undo/Redo your most recent actions.
 
 ## Deploying Linéo as a Website
 
@@ -74,12 +77,7 @@ This will generate a `dist` directory containing the static website files.
 
 ### Hosting
 
-You can host the contents of the `dist` directory on any static site hosting provider, such as:
-
-- GitHub Pages
-- Vercel
-- Netlify
-- Cloudflare Pages
+You can host the contents of the `dist` directory on any static site hosting provider.
 
 A GitHub Actions workflow has been included to automatically deploy to GitHub Pages.
 

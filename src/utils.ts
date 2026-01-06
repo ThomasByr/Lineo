@@ -1,6 +1,14 @@
 import { Series, DataPoint } from "./types";
 import html2canvas from 'html2canvas';
 
+export function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: any;
+    return (...args: Parameters<T>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+}
+
 export async function captureCanvas(container: HTMLElement, format: 'png' | 'jpg', autoCrop: boolean = true): Promise<Uint8Array> {
     const isDark = document.documentElement.classList.contains('dark');
     const backgroundColor = isDark ? '#1e1e1e' : '#ffffff';
@@ -32,7 +40,7 @@ export function createSeries(name: string, data: DataPoint[], existingCount: num
         name: name || `Series ${existingCount + 1}`,
         data,
         visible: true,
-        color: '#' + Math.floor(Math.random()*16777215).toString(16),
+        color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
         width: 2,
         showLine: false,
         lineStyle: 'solid',
