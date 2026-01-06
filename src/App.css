@@ -17,6 +17,7 @@
   --point-border-color: rgba(0, 0, 0, 0.1);
   --bg-color: #ffffff;
   --text-color: #0f0f0f;
+  --text-secondary: #666666;
 }
 
 body {
@@ -130,6 +131,7 @@ h1 {
   --point-border-color: rgba(255, 255, 255, 0.3);
   --bg-color: #1a1a1a;
   --text-color: #f6f6f6;
+  --text-secondary: #aaaaaa;
 }
 
 :root.dark .sidebar,

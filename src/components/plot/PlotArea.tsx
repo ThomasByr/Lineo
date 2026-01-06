@@ -20,6 +20,7 @@ import { useNotification } from "../../contexts/NotificationContext";
 import { captureCanvas } from "../../utils";
 import { useResizeObserver } from "../../hooks/useResizeObserver";
 import { CustomLegend } from "./CustomLegend";
+import { ExportSettingsModal } from "./ExportSettingsModal";
 
 ChartJS.register(
   LinearScale,
@@ -75,6 +76,17 @@ export function PlotArea({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [autoCrop, setAutoCrop] = useState(true);
   const [wrapperStyle, setWrapperStyle] = useState<any>({ width: "100%", height: "100%" });
+
+  const [exportScale, setExportScaleState] = useState(() => {
+    const saved = localStorage.getItem("exportScale");
+    return saved ? parseFloat(saved) : 2;
+  });
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  const setExportScale = (val: number) => {
+    setExportScaleState(val);
+    localStorage.setItem("exportScale", val.toString());
+  };
 
   const updateSize = () => {
     if (!containerRef.current) return;
@@ -158,7 +170,7 @@ export function PlotArea({
     }
 
     try {
-      const bytes = await captureCanvas(containerRef.current, format, autoCrop);
+      const bytes = await captureCanvas(containerRef.current, format, autoCrop, exportScale);
       // Cast to any to avoid "SharedArrayBuffer" type mismatch error
       const blob = new Blob([bytes as any], {
         type: format === "jpg" ? "image/jpeg" : "image/png",
@@ -248,7 +260,7 @@ export function PlotArea({
     }
 
     try {
-      const bytes = await captureCanvas(containerRef.current, "png", autoCrop);
+      const bytes = await captureCanvas(containerRef.current, "png", autoCrop, exportScale);
       // Cast to any to avoid "SharedArrayBuffer" type mismatch error
       const blob = new Blob([bytes as any], { type: "image/png" });
       await copyImageToClipboard(blob);
@@ -886,6 +898,39 @@ export function PlotArea({
             </span>
           )}
         </button>
+
+        <button
+          onClick={() => setIsExportModalOpen(true)}
+          title="Export Settings"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "42px",
+            height: "42px",
+            padding: "0",
+            backgroundColor: "transparent",
+            border: "1px solid #ccc",
+            marginLeft: "5px",
+            color: "var(--text-secondary, #666)",
+            cursor: "pointer",
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
       </div>
       <div
         ref={containerRef}
@@ -919,6 +964,14 @@ export function PlotArea({
           />
         )}
       </div>
+
+      <ExportSettingsModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        scale={exportScale}
+        onScaleChange={setExportScale}
+        onReset={() => setExportScale(2)}
+      />
     </div>
   );
 }
