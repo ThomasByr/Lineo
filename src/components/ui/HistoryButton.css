@@ -9,7 +9,7 @@
   max-height: 300px;
   overflow-y: auto;
   min-width: 200px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   color: #000;
   text-align: left;
@@ -36,7 +36,7 @@
   background-color: #1a1a1a;
   border-color: #444;
   color: #f6f6f6;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 :root.dark .history-item {

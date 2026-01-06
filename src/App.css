@@ -12,9 +12,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
-  
+
   color-scheme: light;
-  --point-border-color: rgba(0,0,0,0.1);
+  --point-border-color: rgba(0, 0, 0, 0.1);
   --bg-color: #ffffff;
   --text-color: #0f0f0f;
 }
@@ -65,7 +65,7 @@ h1 {
   padding: 20px;
   background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   flex-shrink: 0; /* Prevent shrinking */
 }
@@ -110,7 +110,7 @@ h1 {
   flex: 1;
   background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -127,12 +127,12 @@ h1 {
   color: #f6f6f6;
   background-color: #2f2f2f;
   color-scheme: dark;
-  --point-border-color: rgba(255,255,255,0.3);
+  --point-border-color: rgba(255, 255, 255, 0.3);
   --bg-color: #1a1a1a;
   --text-color: #f6f6f6;
 }
 
-:root.dark .sidebar, 
+:root.dark .sidebar,
 :root.dark .main-content {
   background: #1a1a1a;
   color: #f6f6f6;
@@ -140,123 +140,123 @@ h1 {
 
 /* Header & Controls Layout */
 .header-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 20px;
 }
 
 .theme-toggle {
-    position: absolute;
-    right: 0;
-    background: transparent;
-    font-size: 1.5em;
-    padding: 5px;
-    box-shadow: none;
+  position: absolute;
+  right: 0;
+  background: transparent;
+  font-size: 1.5em;
+  padding: 5px;
+  box-shadow: none;
 }
 
 .controls-section {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
 }
 
 .control-group {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .control-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.9em;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9em;
 }
 
 .control-group input[type="range"] {
-    width: 100%;
+  width: 100%;
 }
 
 .controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 .sidebar-tabs {
-    display: flex;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 15px;
+  display: flex;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 15px;
 }
 
 .sidebar-tabs button {
-    flex: 1;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-    padding: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #666;
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666;
 }
 
 .sidebar-tabs button.active {
-    border-bottom-color: #396cd8;
-    color: #396cd8;
+  border-bottom-color: #396cd8;
+  color: #396cd8;
 }
 
 .sidebar-content {
-    flex: 1;
-    overflow-y: auto;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .header-controls {
-    position: absolute;
-    right: 0;
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    height: 100%;
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  height: 100%;
 }
 
 .view-control-group {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .control-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #888;
-    font-weight: 600;
-    margin-left: 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  font-weight: 600;
+  margin-left: 4px;
 }
 
 .divider {
-    width: 1px;
-    height: 30px;
-    background-color: #e0e0e0;
+  width: 1px;
+  height: 30px;
+  background-color: #e0e0e0;
 }
 
 :root.dark .divider {
-    background-color: #444;
+  background-color: #444;
 }
 
 :root.dark .control-label {
-    color: #aaa;
+  color: #aaa;
 }
 
 .toolbar-group {
-    position: absolute;
-    left: 0;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    height: 100%;
+  position: absolute;
+  left: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 100%;
 }
 
 .icon-btn {
@@ -287,14 +287,13 @@ h1 {
 
 /* Button Text Labels */
 .btn-label {
-    margin-left: 6px;
-    font-size: 0.9em;
-    font-weight: 500;
+  margin-left: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
 }
 
 /* Update icon-btn to support text better if needed */
 .icon-btn.labeled {
-    padding: 6px 12px;
-    width: auto; /* Allow growth */
+  padding: 6px 12px;
+  width: auto; /* Allow growth */
 }
-

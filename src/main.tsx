@@ -4,10 +4,10 @@ import { NotificationProvider } from "./contexts/NotificationContext";
 import { ProjectProvider } from "./contexts/ProjectContext";
 
 render(
-    <NotificationProvider>
-        <ProjectProvider>
-            <App />
-        </ProjectProvider>
-    </NotificationProvider>, 
-    document.getElementById("root")!
+  <NotificationProvider>
+    <ProjectProvider>
+      <App />
+    </ProjectProvider>
+  </NotificationProvider>,
+  document.getElementById("root")!,
 );

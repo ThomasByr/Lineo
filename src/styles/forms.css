@@ -91,7 +91,8 @@ input[type="file"] {
 }
 
 /* Modern Toggle Switch */
-label.toggle-container.toggle-container { /* Double class to increase specificity over .control-group label */
+label.toggle-container.toggle-container {
+  /* Double class to increase specificity over .control-group label */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -111,7 +112,7 @@ label.toggle-container.toggle-container { /* Double class to increase specificit
 }
 
 .toggle-switch::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 2px;
   left: 2px;
@@ -120,7 +121,7 @@ label.toggle-container.toggle-container { /* Double class to increase specificit
   background-color: white;
   border-radius: 50%;
   transition: transform 0.3s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-input {
@@ -128,7 +129,7 @@ label.toggle-container.toggle-container { /* Double class to increase specificit
 }
 
 .toggle-input:checked + .toggle-switch {
-  background-color: #4CAF50; /* Green for ON */
+  background-color: #4caf50; /* Green for ON */
 }
 
 .toggle-input:checked + .toggle-switch::after {
@@ -149,81 +150,81 @@ label.toggle-container.toggle-container { /* Double class to increase specificit
 }
 
 :root.dark .toggle-input:checked + .toggle-switch {
-  background-color: #4CAF50;
+  background-color: #4caf50;
 }
 
 /* Custom Select */
 .custom-select-container {
-    position: relative;
-    width: 100%;
-    font-family: inherit;
+  position: relative;
+  width: 100%;
+  font-family: inherit;
 }
 
 .custom-select-trigger {
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    color: #0f0f0f;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    user-select: none;
-    font-size: 1em;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #0f0f0f;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  font-size: 1em;
 }
 
 .custom-select-options {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-top: 4px;
-    z-index: 1000;
-    max-height: 200px;
-    overflow-y: auto;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 4px;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .custom-select-option {
-    padding: 8px;
-    cursor: pointer;
-    color: #0f0f0f;
+  padding: 8px;
+  cursor: pointer;
+  color: #0f0f0f;
 }
 
 .custom-select-option:hover {
-    background-color: #f0f0f0;
+  background-color: #f0f0f0;
 }
 
 .custom-select-option.selected {
-    background-color: #e6f0ff;
-    font-weight: 500;
+  background-color: #e6f0ff;
+  font-weight: 500;
 }
 
 /* Dark mode */
 :root.dark .custom-select-trigger {
-    background-color: #3a3a3a;
-    color: #fff;
-    border-color: #555;
+  background-color: #3a3a3a;
+  color: #fff;
+  border-color: #555;
 }
 
 :root.dark .custom-select-options {
-    background-color: #3a3a3a;
-    border-color: #555;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  background-color: #3a3a3a;
+  border-color: #555;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 :root.dark .custom-select-option {
-    color: #fff;
+  color: #fff;
 }
 
 :root.dark .custom-select-option:hover {
-    background-color: #4a4a4a;
+  background-color: #4a4a4a;
 }
 
 :root.dark .custom-select-option.selected {
-    background-color: #2a4a8a;
+  background-color: #2a4a8a;
 }

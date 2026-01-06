@@ -4,7 +4,7 @@
   border: 1px solid #ccc;
   padding: 8px 12px;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 10;
   user-select: none;
   font-family: sans-serif;
@@ -16,5 +16,5 @@
   background-color: rgba(30, 30, 30, 0.9);
   border-color: #555;
   color: #eee;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
