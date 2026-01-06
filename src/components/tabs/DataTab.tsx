@@ -1,12 +1,12 @@
 import { useState } from "preact/hooks";
-import { Series, DataPoint } from "../types";
+import { Series, DataPoint } from "../../types";
 import Papa from "papaparse";
-import { openFile, readText, readExcel, FileResult } from "../platform";
-import { parseCellRange } from "../utils";
-import { Toggle } from "./Toggle";
-import { CustomSelect } from "./CustomSelect";
-import { useNotification } from "../contexts/NotificationContext";
-import { isTauri } from "../platform";
+import { openFile, readText, readExcel, FileResult } from "../../platform";
+import { parseCellRange } from "../../utils";
+import { Toggle } from "../ui/Toggle";
+import { CustomSelect } from "../ui/CustomSelect";
+import { useNotification } from "../../contexts/NotificationContext";
+import { isTauri } from "../../platform";
 
 interface DataTabProps {
     series: Series[];

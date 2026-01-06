@@ -1,5 +1,5 @@
 import { JSX } from "preact";
-import { Series, PlotSettings } from "../types";
+import { Series, PlotSettings } from "../../types";
 import { PointSymbol } from "./PointSymbol";
 
 interface CustomLegendProps {

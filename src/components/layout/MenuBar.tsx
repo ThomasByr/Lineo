@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "preact/hooks";
-import { useProject } from "../contexts/ProjectContext";
+import { useProject } from "../../contexts/ProjectContext";
 import "./MenuBar.css";
 
 interface MenuBarProps {

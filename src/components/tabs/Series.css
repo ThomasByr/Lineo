@@ -1,0 +1,104 @@
+.series-analysis,
+.series-settings {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+:root.dark .series-analysis,
+:root.dark .series-settings {
+  border-bottom-color: #444;
+}
+
+.help-text {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 5px;
+}
+
+:root.dark .help-text {
+  color: #aaa;
+}
+
+.parameter-control {
+  border: 1px solid #eee;
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+}
+
+:root.dark .parameter-control {
+  border-color: #444;
+}
+
+.edit-points-btn {
+  width: 100%;
+}
+
+.edit-points-btn.active {
+  background-color: #ffcccc;
+  color: #0f0f0f;
+}
+
+:root.dark .edit-points-btn.active {
+  background-color: #662222;
+  color: #fff;
+}
+
+.series-list-ul {
+  list-style: none;
+  padding: 0;
+}
+
+.series-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+:root.dark .series-list-item {
+  border-bottom-color: #444;
+}
+
+.rename-input {
+  padding: 4px 8px;
+  flex: 1;
+}
+
+.small-btn {
+  padding: 4px 8px;
+  font-size: 0.8em;
+}
+
+.series-count {
+  font-size: 0.85em;
+  color: #888;
+}
+
+:root.dark .series-count {
+  color: #aaa;
+}
+
+.remove-btn {
+  color: #d32f2f;
+}
+
+:root.dark .remove-btn {
+  color: #ff6666;
+}
+
+.data-textarea {
+  width: 100%;
+  font-family: monospace;
+}
+
+.format-select {
+  width: 100%;
+}
+
+:root.dark .format-select {
+  background-color: #3a3a3a;
+  color: #fff;
+}

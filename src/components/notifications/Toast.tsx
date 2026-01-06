@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'preact/hooks';
-import { AppNotification } from '../types';
+import { AppNotification } from '../../types';
 import { NotificationCard } from './NotificationCard';
-import { useNotification } from '../contexts/NotificationContext';
+import { useNotification } from '../../contexts/NotificationContext';
 
 interface ToastProps {
   notification: AppNotification;

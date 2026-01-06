@@ -1,11 +1,11 @@
-import { Series, RegressionType, ManualParameter } from "../types";
-import { calculateRegressionDetails, getAutoParameters } from "../regressionHelper";
-import { Toggle } from "./Toggle";
-import { CustomSelect } from "./CustomSelect";
-import { NumberInput } from "./NumberInput";
-import { RangeInput } from "./RangeInput";
-import { ColorInput } from "./ColorInput";
-import { useNotification } from "../contexts/NotificationContext";
+import { Series, RegressionType, ManualParameter } from "../../types";
+import { calculateRegressionDetails, getAutoParameters } from "../../regressionHelper";
+import { Toggle } from "../ui/Toggle";
+import { CustomSelect } from "../ui/CustomSelect";
+import { NumberInput } from "../ui/NumberInput";
+import { RangeInput } from "../ui/RangeInput";
+import { ColorInput } from "../ui/ColorInput";
+import { useNotification } from "../../contexts/NotificationContext";
 
 interface AnalysisTabProps {
     series: Series[];

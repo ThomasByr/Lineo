@@ -1,4 +1,4 @@
-import { useNotification } from '../contexts/NotificationContext';
+import { useNotification } from '../../contexts/NotificationContext';
 import { useEffect, useState } from 'preact/hooks';
 
 export function NotificationBell() {

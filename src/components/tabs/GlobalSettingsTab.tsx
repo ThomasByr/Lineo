@@ -1,8 +1,8 @@
 import { useState } from "preact/hooks";
-import { PlotSettings, ViewMode, TextStyle } from "../types";
-import { NumberInput } from "./NumberInput";
-import { Toggle } from "./Toggle";
-import { CustomSelect } from "./CustomSelect";
+import { PlotSettings, ViewMode, TextStyle } from "../../types";
+import { NumberInput } from "../ui/NumberInput";
+import { Toggle } from "../ui/Toggle";
+import { CustomSelect } from "../ui/CustomSelect";
 
 function TextStyleControls({ style, onChange }: { style: TextStyle, onChange: (s: TextStyle) => void }) {
     const btnStyle = (active: boolean) => ({

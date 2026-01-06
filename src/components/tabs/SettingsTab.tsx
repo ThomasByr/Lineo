@@ -1,8 +1,8 @@
-import { Series } from "../types";
-import { Toggle } from "./Toggle";
-import { CustomSelect } from "./CustomSelect";
-import { ColorInput } from "./ColorInput";
-import { RangeInput } from "./RangeInput";
+import { Series } from "../../types";
+import { Toggle } from "../ui/Toggle";
+import { CustomSelect } from "../ui/CustomSelect";
+import { ColorInput } from "../ui/ColorInput";
+import { RangeInput } from "../ui/RangeInput";
 
 interface SettingsTabProps {
     series: Series[];

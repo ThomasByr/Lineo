@@ -1,4 +1,4 @@
-import { useNotification } from '../contexts/NotificationContext';
+import { useNotification } from '../../contexts/NotificationContext';
 import { NotificationCard } from './NotificationCard';
 import { useEffect, useRef } from 'preact/hooks';
 

@@ -1,0 +1,229 @@
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  color: #0f0f0f;
+  background-color: #e0e0e0;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: #396cd8;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+textarea {
+  resize: vertical;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #0f0f0f;
+  font-family: inherit;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+input[type="color"] {
+  border: none;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+input[type="range"] {
+  accent-color: #396cd8;
+}
+
+input[type="file"] {
+  font-family: inherit;
+  color: #0f0f0f;
+}
+
+/* Local Dark Mode Overrides for Forms */
+:root.dark button {
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+
+:root.dark textarea {
+  background-color: #3a3a3a;
+  color: #fff;
+  border-color: #555;
+}
+
+:root.dark input[type="text"],
+:root.dark input[type="number"],
+:root.dark select {
+  background-color: #3a3a3a;
+  color: #fff;
+  border-color: #555;
+}
+
+:root.dark input[type="file"] {
+  color: #f6f6f6;
+}
+
+/* Modern Toggle Switch */
+label.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0; /* Override .control-group label margin */
+}
+
+.toggle-switch {
+  position: relative;
+  width: 46px;
+  height: 24px;
+  background-color: #ccc;
+  border-radius: 24px;
+  transition: background-color 0.3s;
+  flex-shrink: 0;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-input:checked + .toggle-switch {
+  background-color: #4CAF50; /* Green for ON */
+}
+
+.toggle-input:checked + .toggle-switch::after {
+  transform: translateX(22px);
+}
+
+.toggle-label-text {
+  font-size: 0.95em;
+  color: #333;
+}
+
+:root.dark .toggle-label-text {
+  color: #eee;
+}
+
+:root.dark .toggle-switch {
+  background-color: #555;
+}
+
+:root.dark .toggle-input:checked + .toggle-switch {
+  background-color: #4CAF50;
+}
+
+/* Custom Select */
+.custom-select-container {
+    position: relative;
+    width: 100%;
+    font-family: inherit;
+}
+
+.custom-select-trigger {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #0f0f0f;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    font-size: 1em;
+}
+
+.custom-select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 4px;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.custom-select-option {
+    padding: 8px;
+    cursor: pointer;
+    color: #0f0f0f;
+}
+
+.custom-select-option:hover {
+    background-color: #f0f0f0;
+}
+
+.custom-select-option.selected {
+    background-color: #e6f0ff;
+    font-weight: 500;
+}
+
+/* Dark mode */
+:root.dark .custom-select-trigger {
+    background-color: #3a3a3a;
+    color: #fff;
+    border-color: #555;
+}
+
+:root.dark .custom-select-options {
+    background-color: #3a3a3a;
+    border-color: #555;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+:root.dark .custom-select-option {
+    color: #fff;
+}
+
+:root.dark .custom-select-option:hover {
+    background-color: #4a4a4a;
+}
+
+:root.dark .custom-select-option.selected {
+    background-color: #2a4a8a;
+}

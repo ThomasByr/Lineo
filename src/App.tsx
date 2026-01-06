@@ -1,19 +1,26 @@
 import { useState, useEffect, useCallback } from "preact/hooks";
+import "./styles/forms.css";
 import "./App.css";
-import { MenuBar } from "./components/MenuBar";
-import { AboutModal } from "./components/AboutModal";
-import { DataTab } from "./components/DataTab";
-import { SettingsTab } from "./components/SettingsTab";
-import { GlobalSettingsTab } from "./components/GlobalSettingsTab";
-import { AnalysisTab } from "./components/AnalysisTab";
-import { PlotArea } from "./components/PlotArea";
+import "./components/notifications/Notifications.css";
+import "./components/ui/HistoryButton.css";
+import "./components/ui/ViewControls.css";
+import "./components/tabs/Series.css";
+import "./components/tabs/PlotSettings.css";
+import "./components/plot/CustomLegend.css";
+import { MenuBar } from "./components/layout/MenuBar";
+import { AboutModal } from "./components/layout/AboutModal";
+import { DataTab } from "./components/tabs/DataTab";
+import { SettingsTab } from "./components/tabs/SettingsTab";
+import { GlobalSettingsTab } from "./components/tabs/GlobalSettingsTab";
+import { AnalysisTab } from "./components/tabs/AnalysisTab";
+import { PlotArea } from "./components/plot/PlotArea";
 import { PlotSettings } from "./types";
 
-import { NotificationBell } from "./components/NotificationBell";
-import { NotificationPanel } from "./components/NotificationPanel";
-import { ToastContainer } from "./components/ToastContainer";
+import { NotificationBell } from "./components/notifications/NotificationBell";
+import { NotificationPanel } from "./components/notifications/NotificationPanel";
+import { ToastContainer } from "./components/notifications/ToastContainer";
 import { useProject } from "./contexts/ProjectContext";
-import { HistoryButton } from "./components/HistoryButton";
+import { HistoryButton } from "./components/ui/HistoryButton";
 
 function App() {
   const { 

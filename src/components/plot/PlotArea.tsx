@@ -12,13 +12,13 @@ import {
 } from "chart.js";
 import { Scatter } from "react-chartjs-2";
 import fitCurve from "fit-curve";
-import { saveImage, copyImageToClipboard } from "../platform";
-import { Series, DataPoint, ViewMode, PlotSettings } from "../types";
-import { calculateRegression } from "../regressionHelper";
+import { saveImage, copyImageToClipboard } from "../../platform";
+import { Series, DataPoint, ViewMode, PlotSettings } from "../../types";
+import { calculateRegression } from "../../regressionHelper";
 import zoomPlugin from 'chartjs-plugin-zoom';
-import { useNotification } from '../contexts/NotificationContext';
-import { captureCanvas } from "../utils";
-import { useResizeObserver } from "../hooks/useResizeObserver";
+import { useNotification } from '../../contexts/NotificationContext';
+import { captureCanvas } from "../../utils";
+import { useResizeObserver } from "../../hooks/useResizeObserver";
 import { CustomLegend } from "./CustomLegend";
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend, Title, ScatterController, zoomPlugin);

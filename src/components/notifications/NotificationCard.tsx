@@ -1,5 +1,5 @@
-import { AppNotification } from '../types';
-import { useNotification } from '../contexts/NotificationContext';
+import { AppNotification } from '../../types';
+import { useNotification } from '../../contexts/NotificationContext';
 
 interface NotificationCardProps {
   notification: AppNotification;
