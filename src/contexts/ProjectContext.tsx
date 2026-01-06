@@ -340,6 +340,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         currentPathRef.current = path; // Update current path
         setHasSavedPath(true);
         await invoke("save_text_file", { path, content });
+        const fileName = path.split(/[/\\]/).pop() || "project";
+        addNotification("success", `Project saved as ${fileName}`);
       } else {
         const blob = new Blob([content], { type: "application/json" });
 
@@ -368,7 +370,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
             const writable = await handle.createWritable();
             await writable.write(blob);
             await writable.close();
-            addNotification("success", "Project saved successfully");
+            addNotification("success", `Project saved as ${handle.name}`);
             return;
           } catch (err: any) {
             if (err.name === "AbortError") return;
@@ -384,8 +386,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        addNotification("success", "Project saved as project.lineo");
       }
-      addNotification("success", "Project saved successfully");
     } catch (error) {
       console.error("Failed to save project:", error);
       addNotification("error", "Failed to save project");
@@ -405,7 +407,10 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
           };
           const content = JSON.stringify(projectData, null, 2);
           await invoke("save_text_file", { path: currentPathRef.current, content });
-          if (!silent) addNotification("success", "Project saved successfully");
+          if (!silent) {
+            const fileName = currentPathRef.current.split(/[/\\]/).pop() || "project";
+            addNotification("success", `Project saved: ${fileName}`);
+          }
         } catch (e) {
           console.error("Failed to save project:", e);
           if (!silent) addNotification("error", "Failed to save project");
@@ -421,6 +426,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const loadProject = useCallback(async () => {
     try {
       let content = "";
+      let loadedFileName = "";
 
       if (isTauri()) {
         const path = await open({
@@ -435,25 +441,28 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         if (!path) return;
         currentPathRef.current = path; // Update current path
         setHasSavedPath(true);
+        loadedFileName = path.split(/[/\\]/).pop() || "project";
         content = (await invoke("read_text_file_custom", { path })) as string;
       } else {
-        content = await new Promise<string>((resolve, reject) => {
+        const result = await new Promise<{ content: string; name: string }>((resolve, reject) => {
           const input = document.createElement("input");
           input.type = "file";
           input.accept = ".lineo,.json";
           input.onchange = (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (!file) {
-              resolve("");
+              resolve({ content: "", name: "" });
               return;
             }
             const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.onload = (e) => resolve({ content: e.target?.result as string, name: file.name });
             reader.onerror = (e) => reject(e);
             reader.readAsText(file);
           };
           input.click();
         });
+        content = result.content;
+        loadedFileName = result.name;
         if (!content) return;
       }
 
@@ -488,7 +497,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
             }
           },
         );
-        addNotification("success", "Project loaded successfully");
+        addNotification("success", `Project loaded: ${loadedFileName}`);
       }
     } catch (error) {
       console.error("Failed to load project:", error);
