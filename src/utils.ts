@@ -16,13 +16,14 @@ export async function captureCanvas(
   container: HTMLElement,
   format: "png" | "jpg",
   autoCrop: boolean = true,
+  scale: number = 2,
 ): Promise<Uint8Array> {
   const isDark = document.documentElement.classList.contains("dark");
   const backgroundColor = isDark ? "#1e1e1e" : "#ffffff";
 
   let canvas = await html2canvas(container, {
     backgroundColor,
-    scale: 2,
+    scale,
   });
 
   if (autoCrop) {

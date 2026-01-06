@@ -5,7 +5,11 @@ import { AppNotification, NotificationType } from "../types";
 interface NotificationContextType {
   notifications: AppNotification[];
   toasts: AppNotification[];
-  addNotification: (type: NotificationType, message: string) => void;
+  addNotification: (
+    type: NotificationType,
+    message: string,
+    action?: { label: string; onClick: () => void },
+  ) => void;
   removeNotification: (id: string) => void;
   dismissToast: (id: string, saveToHistory?: boolean) => void;
   clearAllNotifications: () => void;
@@ -23,17 +27,21 @@ export function NotificationProvider({ children }: { children: ComponentChildren
   const [toasts, setToasts] = useState<AppNotification[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  const addNotification = useCallback((type: NotificationType, message: string) => {
-    const newNotification: AppNotification = {
-      id: crypto.randomUUID(),
-      type,
-      message,
-      timestamp: Date.now(),
-      read: false,
-    };
-    // Add to toasts instead of notifications directly
-    setToasts((prev) => [newNotification, ...prev]);
-  }, []);
+  const addNotification = useCallback(
+    (type: NotificationType, message: string, action?: { label: string; onClick: () => void }) => {
+      const newNotification: AppNotification = {
+        id: crypto.randomUUID(),
+        type,
+        message,
+        timestamp: Date.now(),
+        read: false,
+        action,
+      };
+      // Add to toasts instead of notifications directly
+      setToasts((prev) => [newNotification, ...prev]);
+    },
+    [],
+  );
 
   const dismissToast = useCallback((id: string, saveToHistory: boolean = true) => {
     setToasts((prev) => {

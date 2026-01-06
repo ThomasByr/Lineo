@@ -7,6 +7,18 @@
     <link rel="icon" type="image/png" href="/icon.png" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <title>Linéo</title>
+    <style>
+      :root { background-color: #f6f6f6; color-scheme: light; }
+      :root.dark { background-color: #2f2f2f; color-scheme: dark; }
+    </style>
+    <script>
+      (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
 
   <body>

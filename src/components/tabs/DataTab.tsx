@@ -10,12 +10,13 @@ import { isTauri } from "../../platform";
 
 interface DataTabProps {
   series: Series[];
-  setSeries: (series: Series[]) => void;
+  setSeries: (series: Series[], description?: string) => void;
   updateSeries: (id: string, updates: Partial<Series>) => void;
   onAddSeries: (name: string, data: DataPoint[]) => void;
+  removeSeries: (id: string) => void;
 }
 
-export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTabProps) {
+export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: DataTabProps) {
   const { addNotification } = useNotification();
   const [activeTab, setActiveTab] = useState<"csv" | "excel" | "manual">("manual");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -46,8 +47,8 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
     return file.name;
   };
 
-  const removeSeries = (id: string) => {
-    setSeries(series.filter((s) => s.id !== id));
+  const handleRemoveSeries = (id: string) => {
+    removeSeries(id);
     if (editingId === id) {
       setEditingId(null);
       setEditData("");
@@ -286,7 +287,7 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries }: DataTa
                       Edit Data
                     </button>
                     <button
-                      onClick={() => removeSeries(s.id)}
+                      onClick={() => handleRemoveSeries(s.id)}
                       className="small-btn remove-btn"
                       style={{ flex: 0 }}
                     >

@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open as tauriOpen, save as tauriSave } from "@tauri-apps/plugin-dialog";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { writeImage as tauriWriteImage } from "@tauri-apps/plugin-clipboard-manager";
 import { Image as TauriImage } from "@tauri-apps/api/image";
 import { DataPoint } from "./types";
@@ -68,7 +68,7 @@ export async function readExcel(
   }
 }
 
-export async function saveImage(blob: Blob, defaultName: string): Promise<void> {
+export async function saveImage(blob: Blob, defaultName: string): Promise<string | null> {
   if (isTauri()) {
     const path = await tauriSave({
       defaultPath: defaultName,
@@ -85,7 +85,9 @@ export async function saveImage(blob: Blob, defaultName: string): Promise<void> 
       const uint8Array = new Uint8Array(arrayBuffer);
       // Convert to array for Rust
       await invoke("save_image", { path, data: Array.from(uint8Array) });
+      return path;
     }
+    return null;
   } else {
     // Check for File System Access API support
     if ("showSaveFilePicker" in window) {
@@ -104,9 +106,9 @@ export async function saveImage(blob: Blob, defaultName: string): Promise<void> 
         const writable = await handle.createWritable();
         await writable.write(blob);
         await writable.close();
-        return;
+        return handle.name;
       } catch (err: any) {
-        if (err.name === "AbortError") return;
+        if (err.name === "AbortError") return null;
         // Fallback to download if something else fails
         console.error("File picker failed, falling back to download", err);
       }
@@ -118,6 +120,7 @@ export async function saveImage(blob: Blob, defaultName: string): Promise<void> 
     a.download = defaultName;
     a.click();
     URL.revokeObjectURL(url);
+    return defaultName;
   }
 }
 
@@ -141,5 +144,13 @@ export async function openExternal(url: string): Promise<void> {
     await openUrl(url);
   } else {
     window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
+
+export async function showInFolder(path: string): Promise<void> {
+  if (isTauri()) {
+    await revealItemInDir(path);
+  } else {
+    console.warn("Show in folder is not supported on web");
   }
 }
