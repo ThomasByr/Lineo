@@ -46,6 +46,7 @@ function App() {
     autoSaveEnabled,
     toggleAutoSave,
     hasSavedPath,
+    removeSeries,
   } = useProject();
 
   const [appZoom, setAppZoom] = useState(() => {
@@ -447,6 +448,7 @@ function App() {
                     setSeries={setSeries}
                     updateSeries={updateSeries}
                     onAddSeries={addSeries}
+                    removeSeries={removeSeries}
                   />
                 )}
                 {activeTab === "plot" && (

@@ -228,8 +228,51 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
       _setSeries(nextSeries);
 
       if (!skipHistory) {
+        let desc = `Update series "${targetSeries.name}"`;
+
+        // Check strictly what changed
+        if (targetSeries.name !== updatedSeriesItem.name)
+          desc = `Rename "${targetSeries.name}" to "${updatedSeriesItem.name}"`;
+        else if (targetSeries.color !== updatedSeriesItem.color)
+          desc = `Change color of "${targetSeries.name}"`;
+        else if (targetSeries.visible !== updatedSeriesItem.visible)
+          desc = `${updatedSeriesItem.visible ? "Show" : "Hide"} "${targetSeries.name}"`;
+        else if (targetSeries.width !== updatedSeriesItem.width)
+          desc = `Change line width of "${targetSeries.name}"`;
+        else if (targetSeries.showLine !== updatedSeriesItem.showLine)
+          desc = `${updatedSeriesItem.showLine ? "Show" : "Hide"} line of "${targetSeries.name}"`;
+        else if (targetSeries.lineStyle !== updatedSeriesItem.lineStyle)
+          desc = `Change line style of "${targetSeries.name}"`;
+        else if (targetSeries.pointSize !== updatedSeriesItem.pointSize)
+          desc = `Change point size of "${targetSeries.name}"`;
+        else if (targetSeries.pointStyle !== updatedSeriesItem.pointStyle)
+          desc = `Change point shape of "${targetSeries.name}"`;
+        else if (JSON.stringify(targetSeries.data) !== JSON.stringify(updatedSeriesItem.data))
+          desc = `Update data for "${targetSeries.name}"`;
+        else if (
+          JSON.stringify(targetSeries.regression) !== JSON.stringify(updatedSeriesItem.regression)
+        ) {
+          const newReg = updatedSeriesItem.regression;
+          const oldReg = targetSeries.regression;
+          const regType = newReg.type;
+
+          if (newReg.type !== oldReg.type) {
+            desc = `Change regression to ${regType} for "${targetSeries.name}"`;
+          } else if (newReg.color !== oldReg.color) {
+            desc = `Change regression color for "${targetSeries.name}"`;
+          } else if (newReg.width !== oldReg.width) {
+            desc = `Change regression line width for "${targetSeries.name}"`;
+          } else if (newReg.style !== oldReg.style) {
+            desc = `Change regression line style for "${targetSeries.name}"`;
+          } else if (newReg.order !== oldReg.order) {
+            desc = `Change regression order to ${newReg.order} for "${targetSeries.name}"`;
+          } else {
+            desc = `Update regression settings for "${targetSeries.name}"`;
+          }
+        }
+
         recordAction(
-          `Update series "${targetSeries.name}"`,
+          desc,
           () => _setSeries(prevSeries),
           () => _setSeries(nextSeries),
         );
@@ -304,8 +347,73 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
       _setPlotSettings(newSettings);
 
       if (!skipHistory) {
+        let desc = "Update plot settings";
+
+        if (prevSettings.title !== newSettings.title)
+          desc = `Change plot title to "${newSettings.title}"`;
+        else if (prevSettings.xLabel !== newSettings.xLabel) desc = `Change X axis label`;
+        else if (prevSettings.yLabel !== newSettings.yLabel) desc = `Change Y axis label`;
+        else if (prevSettings.showGridX !== newSettings.showGridX)
+          desc = `${newSettings.showGridX ? "Show" : "Hide"} X grid`;
+        else if (prevSettings.showGridY !== newSettings.showGridY)
+          desc = `${newSettings.showGridY ? "Show" : "Hide"} Y grid`;
+        else if (prevSettings.showLegend !== newSettings.showLegend)
+          desc = `${newSettings.showLegend ? "Show" : "Hide"} legend`;
+        else if (
+          prevSettings.xMin !== newSettings.xMin ||
+          prevSettings.xMax !== newSettings.xMax
+        )
+          desc = "Change X axis range";
+        else if (
+          prevSettings.yMin !== newSettings.yMin ||
+          prevSettings.yMax !== newSettings.yMax
+        )
+          desc = "Change Y axis range";
+        else if (prevSettings.aspectRatio !== newSettings.aspectRatio) desc = "Change aspect ratio";
+        else if (
+          JSON.stringify(prevSettings.titleStyle) !== JSON.stringify(newSettings.titleStyle)
+        )
+          desc = "Change title style";
+        else if (
+          JSON.stringify(prevSettings.xLabelStyle) !== JSON.stringify(newSettings.xLabelStyle)
+        )
+          desc = "Change X label style";
+        else if (
+          JSON.stringify(prevSettings.yLabelStyle) !== JSON.stringify(newSettings.yLabelStyle)
+        )
+          desc = "Change Y label style";
+        else if (
+          prevSettings.hideSystemLegend !== newSettings.hideSystemLegend
+        )
+          desc = `${newSettings.hideSystemLegend ? "Hide" : "Show"} system legend`;
+        else if (
+          prevSettings.hideSystemLegendOnExport !== newSettings.hideSystemLegendOnExport
+        )
+          desc = `Turn ${newSettings.hideSystemLegendOnExport ? "on" : "off"} hide legend on export`;
+        else if (
+          JSON.stringify(prevSettings.legendPosition) !==
+          JSON.stringify(newSettings.legendPosition)
+        )
+          desc = "Move legend";
+        else if (
+          prevSettings.xAxisLabelFontSize !== newSettings.xAxisLabelFontSize ||
+          prevSettings.yAxisLabelFontSize !== newSettings.yAxisLabelFontSize ||
+          prevSettings.xTickLabelFontSize !== newSettings.xTickLabelFontSize ||
+          prevSettings.yTickLabelFontSize !== newSettings.yTickLabelFontSize ||
+          prevSettings.legendFontSize !== newSettings.legendFontSize ||
+          prevSettings.titleFontSize !== newSettings.titleFontSize
+        )
+          desc = "Change font size";
+        else if (
+          prevSettings.gridLineWidthX !== newSettings.gridLineWidthX ||
+          prevSettings.gridLineWidthY !== newSettings.gridLineWidthY ||
+          prevSettings.axisLineWidthX !== newSettings.axisLineWidthX ||
+          prevSettings.axisLineWidthY !== newSettings.axisLineWidthY
+        )
+          desc = "Change line width";
+
         recordAction(
-          "Update plot settings",
+          desc,
           () => _setPlotSettings(prevSettings),
           () => _setPlotSettings(newSettings),
         );
@@ -483,7 +591,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         // Usually load clears history or is a major action.
         // Let's make it an action so we can undo the load.
         recordAction(
-          "Load project",
+          `Load project "${loadedFileName}"`,
           () => {
             _setSeries(prevSeries);
             _setPlotSettings(prevSettings);
