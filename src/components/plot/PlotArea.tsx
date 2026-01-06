@@ -74,7 +74,16 @@ export function PlotArea({
   const [legendPos, setLegendPos] = useState(plotSettings?.legendPosition || { x: 100, y: 100 });
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [autoCrop, setAutoCrop] = useState(true);
+  const [autoCrop, setAutoCropState] = useState(() => {
+    const saved = localStorage.getItem("autoCrop");
+    return saved !== null ? saved === "true" : true;
+  });
+
+  const setAutoCrop = (val: boolean) => {
+    setAutoCropState(val);
+    localStorage.setItem("autoCrop", val.toString());
+  };
+
   const [wrapperStyle, setWrapperStyle] = useState<any>({ width: "100%", height: "100%" });
 
   const [exportScale, setExportScaleState] = useState(() => {
