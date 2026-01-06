@@ -249,9 +249,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
           desc = `Change point shape of "${targetSeries.name}"`;
         else if (JSON.stringify(targetSeries.data) !== JSON.stringify(updatedSeriesItem.data))
           desc = `Update data for "${targetSeries.name}"`;
-        else if (
-          JSON.stringify(targetSeries.regression) !== JSON.stringify(updatedSeriesItem.regression)
-        ) {
+        else if (JSON.stringify(targetSeries.regression) !== JSON.stringify(updatedSeriesItem.regression)) {
           const newReg = updatedSeriesItem.regression;
           const oldReg = targetSeries.regression;
           const regType = newReg.type;
@@ -349,8 +347,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
       if (!skipHistory) {
         let desc = "Update plot settings";
 
-        if (prevSettings.title !== newSettings.title)
-          desc = `Change plot title to "${newSettings.title}"`;
+        if (prevSettings.title !== newSettings.title) desc = `Change plot title to "${newSettings.title}"`;
         else if (prevSettings.xLabel !== newSettings.xLabel) desc = `Change X axis label`;
         else if (prevSettings.yLabel !== newSettings.yLabel) desc = `Change Y axis label`;
         else if (prevSettings.showGridX !== newSettings.showGridX)
@@ -359,41 +356,22 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
           desc = `${newSettings.showGridY ? "Show" : "Hide"} Y grid`;
         else if (prevSettings.showLegend !== newSettings.showLegend)
           desc = `${newSettings.showLegend ? "Show" : "Hide"} legend`;
-        else if (
-          prevSettings.xMin !== newSettings.xMin ||
-          prevSettings.xMax !== newSettings.xMax
-        )
+        else if (prevSettings.xMin !== newSettings.xMin || prevSettings.xMax !== newSettings.xMax)
           desc = "Change X axis range";
-        else if (
-          prevSettings.yMin !== newSettings.yMin ||
-          prevSettings.yMax !== newSettings.yMax
-        )
+        else if (prevSettings.yMin !== newSettings.yMin || prevSettings.yMax !== newSettings.yMax)
           desc = "Change Y axis range";
         else if (prevSettings.aspectRatio !== newSettings.aspectRatio) desc = "Change aspect ratio";
-        else if (
-          JSON.stringify(prevSettings.titleStyle) !== JSON.stringify(newSettings.titleStyle)
-        )
+        else if (JSON.stringify(prevSettings.titleStyle) !== JSON.stringify(newSettings.titleStyle))
           desc = "Change title style";
-        else if (
-          JSON.stringify(prevSettings.xLabelStyle) !== JSON.stringify(newSettings.xLabelStyle)
-        )
+        else if (JSON.stringify(prevSettings.xLabelStyle) !== JSON.stringify(newSettings.xLabelStyle))
           desc = "Change X label style";
-        else if (
-          JSON.stringify(prevSettings.yLabelStyle) !== JSON.stringify(newSettings.yLabelStyle)
-        )
+        else if (JSON.stringify(prevSettings.yLabelStyle) !== JSON.stringify(newSettings.yLabelStyle))
           desc = "Change Y label style";
-        else if (
-          prevSettings.hideSystemLegend !== newSettings.hideSystemLegend
-        )
+        else if (prevSettings.hideSystemLegend !== newSettings.hideSystemLegend)
           desc = `${newSettings.hideSystemLegend ? "Hide" : "Show"} system legend`;
-        else if (
-          prevSettings.hideSystemLegendOnExport !== newSettings.hideSystemLegendOnExport
-        )
+        else if (prevSettings.hideSystemLegendOnExport !== newSettings.hideSystemLegendOnExport)
           desc = `Turn ${newSettings.hideSystemLegendOnExport ? "on" : "off"} hide legend on export`;
-        else if (
-          JSON.stringify(prevSettings.legendPosition) !==
-          JSON.stringify(newSettings.legendPosition)
-        )
+        else if (JSON.stringify(prevSettings.legendPosition) !== JSON.stringify(newSettings.legendPosition))
           desc = "Move legend";
         else if (
           prevSettings.xAxisLabelFontSize !== newSettings.xAxisLabelFontSize ||
@@ -448,7 +426,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         currentPathRef.current = path; // Update current path
         setHasSavedPath(true);
         await invoke("save_text_file", { path, content });
-        
+
         let message = `Project saved as ${path.split(/[/\\]/).pop() || "project"}`;
         const parts = path.split(/[/\\]/);
         const fileName = parts.pop();

@@ -16,12 +16,7 @@ interface DataTabProps {
   removeSeries: (id: string) => void;
 }
 
-export function DataTab({
-  series,
-  updateSeries,
-  onAddSeries,
-  removeSeries,
-}: DataTabProps) {
+export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: DataTabProps) {
   const { addNotification } = useNotification();
   const [activeTab, setActiveTab] = useState<"csv" | "excel" | "manual">("manual");
   const [editingId, setEditingId] = useState<string | null>(null);

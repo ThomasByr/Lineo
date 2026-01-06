@@ -69,7 +69,7 @@ export function ExportSettingsModal({
               value={scale}
               onChange={(val: number | undefined) => {
                 if (val !== undefined) {
-                   onScaleChange(Math.max(1, Math.min(10, val)));
+                  onScaleChange(Math.max(1, Math.min(10, val)));
                 }
               }}
               step={0.5}
@@ -80,8 +80,7 @@ export function ExportSettingsModal({
             </span>
           </div>
           <p style={{ fontSize: "0.85em", color: "var(--text-secondary)" }}>
-            Higher values increase image quality but file size as well. Default is
-            2x.
+            Higher values increase image quality but file size as well. Default is 2x.
           </p>
         </div>
 

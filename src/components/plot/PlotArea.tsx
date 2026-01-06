@@ -158,9 +158,9 @@ export function PlotArea({
     let originalDPR: number | null = null;
 
     if (chart) {
-       originalDPR = chart.options.devicePixelRatio || null;
-       chart.options.devicePixelRatio = exportScale;
-       chart.resize();
+      originalDPR = chart.options.devicePixelRatio || null;
+      chart.options.devicePixelRatio = exportScale;
+      chart.resize();
     }
 
     if (shouldHideLegend && chart) {
@@ -195,26 +195,26 @@ export function PlotArea({
       if (savedPath) {
         let message = `Chart exported as ${savedPath}`;
         if (savedPath.includes("/")) {
-            // Unix path
-            const parts = savedPath.split("/");
-            const fileName = parts.pop();
-            const folderName = parts.pop();
-             if (fileName && folderName) {
-                message = `Chart exported as ${fileName} in ${folderName}`;
-            }
+          // Unix path
+          const parts = savedPath.split("/");
+          const fileName = parts.pop();
+          const folderName = parts.pop();
+          if (fileName && folderName) {
+            message = `Chart exported as ${fileName} in ${folderName}`;
+          }
         } else if (savedPath.includes("\\")) {
-             // Windows path
-            const parts = savedPath.split("\\");
-            const fileName = parts.pop();
-            const folderName = parts.pop();
-            if (fileName && folderName) {
-                message = `Chart exported as ${fileName} in ${folderName}`;
-            }
+          // Windows path
+          const parts = savedPath.split("\\");
+          const fileName = parts.pop();
+          const folderName = parts.pop();
+          if (fileName && folderName) {
+            message = `Chart exported as ${fileName} in ${folderName}`;
+          }
         } else {
-             // Just filename (Web)
-             message = `Chart exported as ${savedPath}`;
+          // Just filename (Web)
+          message = `Chart exported as ${savedPath}`;
         }
-        
+
         if (isTauri()) {
           addNotification("success", message, {
             label: "Open Folder",
@@ -259,9 +259,9 @@ export function PlotArea({
     let originalDPR: number | null = null;
 
     if (chart) {
-       originalDPR = chart.options.devicePixelRatio || null;
-       chart.options.devicePixelRatio = exportScale;
-       chart.resize();
+      originalDPR = chart.options.devicePixelRatio || null;
+      chart.options.devicePixelRatio = exportScale;
+      chart.resize();
     }
 
     if (shouldHideLegend && chart) {
