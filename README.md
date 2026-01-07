@@ -113,7 +113,7 @@ If you see an error like `Tag "v0.1.1" is not allowed to deploy to github-pages 
 When running in the browser, some features behave differently compared to the desktop version:
 
 - **Excel Import**: Currently disabled in the web version. Only CSV and Manual entry are supported.
-- **File Saving**: Files (images) are downloaded via the browser's download manager instead of a system save dialog.
+- **File Saving**: Exports and project saves are downloaded via the browser's download manager instead of a system save dialog.
 - **Clipboard**: Uses the browser's Clipboard API.
 - **Notifications**: Toast notifications on browser do not allow opening a file explorer window.
 
