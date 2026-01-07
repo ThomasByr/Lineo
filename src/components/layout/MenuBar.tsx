@@ -53,6 +53,12 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
     setActiveMenu(activeMenu === menu ? null : menu);
   };
 
+  const handleMouseEnter = (menu: string) => {
+    if (activeMenu) {
+      setActiveMenu(menu);
+    }
+  };
+
   const handleAction = (action: () => void) => {
     action();
     setActiveMenu(null);
@@ -72,6 +78,7 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
         <div
           className={`menu-trigger ${activeMenu === "file" ? "active" : ""}`}
           onClick={() => toggleMenu("file")}
+          onMouseEnter={() => handleMouseEnter("file")}
         >
           File
         </div>
@@ -120,6 +127,7 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
         <div
           className={`menu-trigger ${activeMenu === "settings" ? "active" : ""}`}
           onClick={() => toggleMenu("settings")}
+          onMouseEnter={() => handleMouseEnter("settings")}
         >
           Settings
         </div>
@@ -178,6 +186,7 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
         <div
           className={`menu-trigger ${activeMenu === "help" ? "active" : ""}`}
           onClick={() => toggleMenu("help")}
+          onMouseEnter={() => handleMouseEnter("help")}
         >
           Help
         </div>
