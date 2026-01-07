@@ -77,14 +77,8 @@ export function PlotArea({
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const {
-    autoCrop,
-    toggleAutoCrop,
-    exportScale,
-    setExportScale,
-    isExportModalOpen,
-    setIsExportModalOpen,
-  } = useProject();
+  const { autoCrop, toggleAutoCrop, exportScale, setExportScale, isExportModalOpen, setIsExportModalOpen } =
+    useProject();
 
   const [wrapperStyle, setWrapperStyle] = useState<any>({ width: "100%", height: "100%" });
 

@@ -166,16 +166,10 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
             </div>
           </div>
           <div className="menu-divider"></div>
-          <div
-            className="menu-option"
-            onClick={() => handleAction(() => setIsExportModalOpen(true))}
-          >
-             <span>Export Settings...</span>
+          <div className="menu-option" onClick={() => handleAction(() => setIsExportModalOpen(true))}>
+            <span>Export Settings...</span>
           </div>
-          <div
-            className="menu-option"
-            onClick={() => handleAction(toggleAutoCrop)}
-          >
+          <div className="menu-option" onClick={() => handleAction(toggleAutoCrop)}>
             <span>{autoCrop ? "Disable Auto Crop" : "Enable Auto Crop"}</span>
             <span className="shortcut" style={{ marginLeft: "10px" }}>
               {autoCrop ? "✓" : ""}
@@ -206,11 +200,7 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
         </div>
       </div>
 
-      {projectName && (
-          <div className="project-title">
-              {projectName}
-          </div>
-      )}
+      {projectName && <div className="project-title">{projectName}</div>}
     </div>
   );
 }

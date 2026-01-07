@@ -324,11 +324,7 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
         <div className="add-data-section">
           <h3>Add Data</h3>
           <div className="tabs" style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
-            <button
-              disabled={activeTab === "csv"}
-              onClick={() => setActiveTab("csv")}
-              style={{ flex: 1 }}
-            >
+            <button disabled={activeTab === "csv"} onClick={() => setActiveTab("csv")} style={{ flex: 1 }}>
               CSV
             </button>
             {isTauri() && (

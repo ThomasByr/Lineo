@@ -112,7 +112,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [hasSavedPath, setHasSavedPath] = useState(false);
   const [projectName, setProjectName] = useState<string | null>(null);
-  
+
   const exportHandlerRef = useRef<((format: "png" | "jpg") => Promise<void>) | null>(null);
 
   // Store current file path for Save/Save As. This is not persisted on reload currently,
@@ -617,10 +617,10 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         if (projectData.viewMode) {
           _setViewMode(projectData.viewMode);
         }
-        
+
         // Update current state
         if (loadedPath) {
-           currentPathRef.current = loadedPath;
+          currentPathRef.current = loadedPath;
         }
         setHasSavedPath(true);
         setProjectName(loadedFileName);
@@ -642,7 +642,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
               _setViewMode(projectData.viewMode);
             }
             if (loadedPath) {
-                currentPathRef.current = loadedPath;
+              currentPathRef.current = loadedPath;
             }
             // Always restore saved state on redo
             setHasSavedPath(true);

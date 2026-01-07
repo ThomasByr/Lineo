@@ -207,12 +207,7 @@ export function GlobalSettingsTab({
               value={plotSettings.xLabel}
               onFocus={() => startTransaction?.()}
               onBlur={() => commitTransaction?.("Update x-axis label")}
-              onInput={(e) =>
-                setPlotSettings(
-                  { ...plotSettings, xLabel: e.currentTarget.value },
-                  true,
-                )
-              }
+              onInput={(e) => setPlotSettings({ ...plotSettings, xLabel: e.currentTarget.value }, true)}
               placeholder="Label"
               className="flex-input"
               style={{ flex: 1 }}
@@ -311,12 +306,7 @@ export function GlobalSettingsTab({
               value={plotSettings.yLabel}
               onFocus={() => startTransaction?.()}
               onBlur={() => commitTransaction?.("Update y-axis label")}
-              onInput={(e) =>
-                setPlotSettings(
-                  { ...plotSettings, yLabel: e.currentTarget.value },
-                  true,
-                )
-              }
+              onInput={(e) => setPlotSettings({ ...plotSettings, yLabel: e.currentTarget.value }, true)}
               placeholder="Label"
               className="flex-input"
               style={{ flex: 1 }}
