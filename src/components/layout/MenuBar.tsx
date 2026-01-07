@@ -21,6 +21,9 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
     canRedo,
     hasSavedPath,
     exportChart,
+    autoCrop,
+    toggleAutoCrop,
+    setIsExportModalOpen,
   } = useProject();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -144,6 +147,22 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
                 +
               </button>
             </div>
+          </div>
+          <div className="menu-divider"></div>
+          <div
+            className="menu-option"
+            onClick={() => handleAction(() => setIsExportModalOpen(true))}
+          >
+             <span>Export Settings...</span>
+          </div>
+          <div
+            className="menu-option"
+            onClick={() => handleAction(toggleAutoCrop)}
+          >
+            <span>{autoCrop ? "Disable Auto Crop" : "Enable Auto Crop"}</span>
+            <span className="shortcut" style={{ marginLeft: "10px" }}>
+              {autoCrop ? "✓" : ""}
+            </span>
           </div>
           <div className="menu-divider"></div>
           <div

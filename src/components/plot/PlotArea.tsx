@@ -76,28 +76,17 @@ export function PlotArea({
   const [legendPos, setLegendPos] = useState(plotSettings?.legendPosition || { x: 100, y: 100 });
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [autoCrop, setAutoCropState] = useState(() => {
-    const saved = localStorage.getItem("autoCrop");
-    return saved !== null ? saved === "true" : true;
-  });
 
-  const setAutoCrop = (val: boolean) => {
-    setAutoCropState(val);
-    localStorage.setItem("autoCrop", val.toString());
-  };
+  const {
+    autoCrop,
+    toggleAutoCrop,
+    exportScale,
+    setExportScale,
+    isExportModalOpen,
+    setIsExportModalOpen,
+  } = useProject();
 
   const [wrapperStyle, setWrapperStyle] = useState<any>({ width: "100%", height: "100%" });
-
-  const [exportScale, setExportScaleState] = useState(() => {
-    const saved = localStorage.getItem("exportScale");
-    return saved ? parseFloat(saved) : 2;
-  });
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-
-  const setExportScale = (val: number) => {
-    setExportScaleState(val);
-    localStorage.setItem("exportScale", val.toString());
-  };
 
   const updateSize = () => {
     if (!containerRef.current) return;
@@ -894,7 +883,7 @@ export function PlotArea({
         ></div>
 
         <button
-          onClick={() => setAutoCrop(!autoCrop)}
+          onClick={() => toggleAutoCrop()}
           title={autoCrop ? "Auto Crop Enabled" : "Auto Crop Disabled"}
           style={{
             display: "flex",

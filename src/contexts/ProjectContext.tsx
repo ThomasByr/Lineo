@@ -51,6 +51,13 @@ interface ProjectContextType {
 
   registerExportHandler: (handler: (format: "png" | "jpg") => Promise<void>) => void;
   exportChart: (format: "png" | "jpg") => Promise<void>;
+
+  autoCrop: boolean;
+  toggleAutoCrop: () => void;
+  exportScale: number;
+  setExportScale: (scale: number) => void;
+  isExportModalOpen: boolean;
+  setIsExportModalOpen: (isOpen: boolean) => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -85,6 +92,16 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const { addNotification } = useNotification();
   const [series, setSeriesState] = useState<Series[]>([]);
   const [plotSettings, setPlotSettingsState] = useState<PlotSettings>(DEFAULT_PLOT_SETTINGS);
+
+  const [autoCrop, setAutoCropState] = useState(() => {
+    const saved = localStorage.getItem("autoCrop");
+    return saved !== null ? saved === "true" : true;
+  });
+  const [exportScale, setExportScaleState] = useState(() => {
+    const saved = localStorage.getItem("exportScale");
+    return saved ? parseFloat(saved) : 2;
+  });
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [viewMode, setViewModeState] = useState<ViewMode>("auto");
 
   const [history, setHistory] = useState<HistoryAction[]>([]);
@@ -621,6 +638,19 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
     exportHandlerRef.current = handler;
   }, []);
 
+  const toggleAutoCrop = useCallback(() => {
+    setAutoCropState((prev) => {
+      const next = !prev;
+      localStorage.setItem("autoCrop", next.toString());
+      return next;
+    });
+  }, []);
+
+  const setExportScale = useCallback((scale: number) => {
+    setExportScaleState(scale);
+    localStorage.setItem("exportScale", scale.toString());
+  }, []);
+
   const exportChart = useCallback(async (format: "png" | "jpg") => {
     if (exportHandlerRef.current) {
       await exportHandlerRef.current(format);
@@ -658,6 +688,12 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         hasSavedPath,
         registerExportHandler,
         exportChart,
+        autoCrop,
+        toggleAutoCrop,
+        exportScale,
+        setExportScale,
+        isExportModalOpen,
+        setIsExportModalOpen,
       }}
     >
       {children}
