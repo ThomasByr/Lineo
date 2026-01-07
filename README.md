@@ -50,7 +50,7 @@ On the above image:
 
 1. The top toolbar to access more settings and actions:
    - **File** menu: access to saving/opening projects, and undo/redo actions.
-   - **Edit** menu: access to app zoom factor and theme.
+   - **Settings** menu: access to app zoom factor and theme.
    - **Help** menu: access to about section.
 2. Save/Open project: save your current project to a file or open a previously saved project.
 3. Undo/Redo your most recent actions.
