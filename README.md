@@ -48,20 +48,28 @@ Run the application and use the graphical interface to create and manipulate fig
 
 On the above image:
 
-1. The tab selector allows you to switch between the different tools:
+1. The top toolbar to access more settings and actions:
+   - **File** menu: access to saving/opening projects, and undo/redo actions.
+   - **Edit** menu: access to app zoom factor and theme.
+   - **Help** menu: access to about section.
+2. Save/Open project: save your current project to a file or open a previously saved project.
+3. Undo/Redo your most recent actions.
+4. App settings: change the zoom mode, switch from dark to light theme, and access recent action outcomes.
+5. The tab selector allows you to switch between the different tools:
    - **Data**: for data creation and import. This allows to create and modify "series".
    - **Plot**: the settings for your different "series". Change the color, the point size and shape, etc.
    - **Approx**: this is where you can set your approximation curves. Choose the type of curve for each "series", and set the parameters.
    - **Settings**: settings for the canvas, like axes limits, grid lines, titles, etc.
-2. Action buttons:
+6. Action buttons:
    - **Enter draw mode**: allows you to draw points directly on the canvas with the mouse and exporting them as a "serie".
    - **Export PNG/JPG**: export the current canvas as an image.
    - **Copy to clipboard**: copy the current canvas to the clipboard as an image.
+7. Action settings:
    - **Auto Crop**: automatically crops exported images to tightly fit the content.
-3. App settings: change the zoom mode, switch from dark to light theme, and access recent action outcomes.
-4. The canvas displays the figures. You can zoom in/out with the mouse wheel and pan by clicking and dragging (on manual zoom mode).
-5. Save/Open project: save your current project to a file or open a previously saved project.
-6. Undo/Redo your most recent actions.
+   - **Export Setting**: choose an upscaling factor for exported images.
+8. The custom legend that is draggable and can be positioned anywhere on the canvas.
+
+And of course the left menu changes depending on the selected tab to provide the relevant tools and settings. The main canvas area is where the figure is displayed and updated in real-time as you modify your data and settings.
 
 ## Deploying Linéo as a Website
 
@@ -105,6 +113,7 @@ When running in the browser, some features behave differently compared to the de
 - **Excel Import**: Currently disabled in the web version. Only CSV and Manual entry are supported.
 - **File Saving**: Files (images) are downloaded via the browser's download manager instead of a system save dialog.
 - **Clipboard**: Uses the browser's Clipboard API.
+- **Notifications**: Toast notifications on browser do not allow opening a file explorer window.
 
 ## TODO and Bugs
 
@@ -113,3 +122,5 @@ When running in the browser, some features behave differently compared to the de
 - [x] Add more canvas settings and pit them in the left menu (axes limits, grid lines, etc.).
 - [x] Add more approximation curves (splines, etc.).
 - [x] Create custom notification zone inside the app (status of app actions, errors on copy/export).
+- [x] Project context to load and save all data/settings in a single file.
+- [x] Undo/Redo system.
