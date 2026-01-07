@@ -73,7 +73,15 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
   const ctrlKey = isMac ? "Cmd" : "Ctrl";
 
   return (
-    <div className="menubar" ref={menuRef}>
+    <div
+      className="menubar"
+      ref={menuRef}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setActiveMenu(null);
+        }
+      }}
+    >
       <div className="menu-item">
         <div
           className={`menu-trigger ${activeMenu === "file" ? "active" : ""}`}
