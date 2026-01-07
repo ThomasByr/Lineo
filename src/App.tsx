@@ -256,10 +256,10 @@ function App() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
-                      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                      <polyline points="13 2 13 9 20 9"></polyline>
-                      <line x1="12" y1="11" x2="12" y2="17"></line>
-                      <line x1="9" y1="14" x2="15" y2="14"></line>
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                      <path d="M12 15v4M10 17h4"></path>
                     </svg>
                     <span className="btn-label">Save As</span>
                   </button>

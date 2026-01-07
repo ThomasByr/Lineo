@@ -324,23 +324,21 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
         <div className="add-data-section">
           <h3>Add Data</h3>
           <div className="tabs" style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+            <button
+              disabled={activeTab === "csv"}
+              onClick={() => setActiveTab("csv")}
+              style={{ flex: 1 }}
+            >
+              CSV
+            </button>
             {isTauri() && (
-              <>
-                <button
-                  disabled={activeTab === "csv"}
-                  onClick={() => setActiveTab("csv")}
-                  style={{ flex: 1 }}
-                >
-                  CSV
-                </button>
-                <button
-                  disabled={activeTab === "excel"}
-                  onClick={() => setActiveTab("excel")}
-                  style={{ flex: 1 }}
-                >
-                  Excel
-                </button>
-              </>
+              <button
+                disabled={activeTab === "excel"}
+                onClick={() => setActiveTab("excel")}
+                style={{ flex: 1 }}
+              >
+                Excel
+              </button>
             )}
             <button
               disabled={activeTab === "manual"}
@@ -352,7 +350,7 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
           </div>
 
           <div className="tab-content" style={{ marginTop: "10px" }}>
-            {isTauri() && activeTab === "csv" && (
+            {activeTab === "csv" && (
               <div className="csv-input">
                 <button onClick={selectCsvFile}>Select File</button>
                 <p>{getFileName(csvPath)}</p>
