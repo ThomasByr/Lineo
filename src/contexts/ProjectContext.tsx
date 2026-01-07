@@ -502,6 +502,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
             await writable.write(blob);
             await writable.close();
             setProjectName(handle.name);
+            setHasSavedPath(true); // Enable "Save" button which falls back to "Save As" on web
             addNotification("success", `Project saved as ${handle.name}`);
             return;
           } catch (err: any) {
@@ -518,6 +519,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        setHasSavedPath(true); // Enable "Save" button which falls back to "Save As" on web
+        setProjectName("project.lineo");
         addNotification("success", "Project saved as project.lineo");
       }
     } catch (error) {
@@ -618,8 +621,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         // Update current state
         if (loadedPath) {
            currentPathRef.current = loadedPath;
-           setHasSavedPath(true);
         }
+        setHasSavedPath(true);
         setProjectName(loadedFileName);
 
         recordAction(
@@ -640,8 +643,9 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
             }
             if (loadedPath) {
                 currentPathRef.current = loadedPath;
-                setHasSavedPath(true);
             }
+            // Always restore saved state on redo
+            setHasSavedPath(true);
             setProjectName(loadedFileName);
           },
         );
