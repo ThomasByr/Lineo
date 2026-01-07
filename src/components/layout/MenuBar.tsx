@@ -11,8 +11,17 @@ interface MenuBarProps {
 }
 
 export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBarProps) {
-  const { saveProject, saveProjectAs, loadProject, undo, redo, canUndo, canRedo, hasSavedPath } =
-    useProject();
+  const {
+    saveProject,
+    saveProjectAs,
+    loadProject,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    hasSavedPath,
+    exportChart,
+  } = useProject();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -80,6 +89,13 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
             <span className="shortcut">({ctrlKey}+O)</span>
           </div>
           <div className="menu-divider"></div>
+          <div className="menu-option" onClick={() => handleAction(() => exportChart("png"))}>
+            <span>Export to PNG</span>
+          </div>
+          <div className="menu-option" onClick={() => handleAction(() => exportChart("jpg"))}>
+            <span>Export to JPG</span>
+          </div>
+          <div className="menu-divider"></div>
           <div
             className={`menu-option ${!canUndo ? "disabled" : ""}`}
             onClick={() => canUndo && handleAction(undo)}
@@ -99,12 +115,12 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
 
       <div className="menu-item">
         <div
-          className={`menu-trigger ${activeMenu === "edit" ? "active" : ""}`}
-          onClick={() => toggleMenu("edit")}
+          className={`menu-trigger ${activeMenu === "settings" ? "active" : ""}`}
+          onClick={() => toggleMenu("settings")}
         >
-          Edit
+          Settings
         </div>
-        <div className={`menu-dropdown ${activeMenu === "edit" ? "open" : ""}`}>
+        <div className={`menu-dropdown ${activeMenu === "settings" ? "open" : ""}`}>
           <div className="menu-option" style={{ cursor: "default", backgroundColor: "transparent" }}>
             <span>App Zoom</span>
             <div className="zoom-controls">

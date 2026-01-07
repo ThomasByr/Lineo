@@ -48,6 +48,9 @@ interface ProjectContextType {
   autoSaveEnabled: boolean;
   toggleAutoSave: () => void;
   hasSavedPath: boolean;
+
+  registerExportHandler: (handler: (format: "png" | "jpg") => Promise<void>) => void;
+  exportChart: (format: "png" | "jpg") => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -89,6 +92,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
 
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [hasSavedPath, setHasSavedPath] = useState(false);
+  
+  const exportHandlerRef = useRef<((format: "png" | "jpg") => Promise<void>) | null>(null);
 
   // Store current file path for Save/Save As. This is not persisted on reload currently,
   // which effectively makes reload start "untitled" until saved.
@@ -612,6 +617,18 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
     return () => clearTimeout(timer);
   }, [series, plotSettings, viewMode, autoSaveEnabled, hasSavedPath, saveProject]);
 
+  const registerExportHandler = useCallback((handler: (format: "png" | "jpg") => Promise<void>) => {
+    exportHandlerRef.current = handler;
+  }, []);
+
+  const exportChart = useCallback(async (format: "png" | "jpg") => {
+    if (exportHandlerRef.current) {
+      await exportHandlerRef.current(format);
+    } else {
+      console.warn("No export handler registered");
+    }
+  }, []);
+
   return (
     <ProjectContext.Provider
       value={{
@@ -639,6 +656,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         autoSaveEnabled,
         toggleAutoSave: () => setAutoSaveEnabled((prev) => !prev),
         hasSavedPath,
+        registerExportHandler,
+        exportChart,
       }}
     >
       {children}

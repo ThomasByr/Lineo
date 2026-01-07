@@ -17,6 +17,7 @@ import { Series, DataPoint, ViewMode, PlotSettings } from "../../types";
 import { calculateRegression } from "../../regressionHelper";
 import zoomPlugin from "chartjs-plugin-zoom";
 import { useNotification } from "../../contexts/NotificationContext";
+import { useProject } from "../../contexts/ProjectContext";
 import { captureCanvas } from "../../utils";
 import { useResizeObserver } from "../../hooks/useResizeObserver";
 import { CustomLegend } from "./CustomLegend";
@@ -59,6 +60,7 @@ export function PlotArea({
   commitTransaction,
 }: PlotAreaProps) {
   const { addNotification } = useNotification();
+  const { registerExportHandler } = useProject();
   const chartRef = useRef<ChartJS>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -864,6 +866,11 @@ export function PlotArea({
     },
     events: ["mousemove", "mouseout", "click", "touchstart", "touchmove"],
   };
+
+  useEffect(() => {
+    registerExportHandler(handleExport);
+    return () => registerExportHandler(async () => {}); // cleanup
+  }, [registerExportHandler]);
 
   return (
     <div className="plot-area" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
