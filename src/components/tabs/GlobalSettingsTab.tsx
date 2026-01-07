@@ -44,7 +44,7 @@ function TextStyleControls({ style, onChange }: { style: TextStyle; onChange: (s
 
 interface GlobalSettingsTabProps {
   plotSettings: PlotSettings;
-  setPlotSettings: (settings: PlotSettings) => void;
+  setPlotSettings: (settings: PlotSettings, skipHistory?: boolean) => void;
   viewMode: ViewMode;
   startTransaction?: () => void;
   commitTransaction?: (description: string) => void;
@@ -91,10 +91,13 @@ export function GlobalSettingsTab({
                 onFocus={() => startTransaction?.()}
                 onBlur={() => commitTransaction?.("Update title")}
                 onInput={(e) =>
-                  setPlotSettings({
-                    ...plotSettings,
-                    title: e.currentTarget.value,
-                  })
+                  setPlotSettings(
+                    {
+                      ...plotSettings,
+                      title: e.currentTarget.value,
+                    },
+                    true,
+                  )
                 }
                 placeholder="Chart Title"
                 className="flex-input"
@@ -202,7 +205,14 @@ export function GlobalSettingsTab({
             <input
               type="text"
               value={plotSettings.xLabel}
-              onInput={(e) => setPlotSettings({ ...plotSettings, xLabel: e.currentTarget.value })}
+              onFocus={() => startTransaction?.()}
+              onBlur={() => commitTransaction?.("Update x-axis label")}
+              onInput={(e) =>
+                setPlotSettings(
+                  { ...plotSettings, xLabel: e.currentTarget.value },
+                  true,
+                )
+              }
               placeholder="Label"
               className="flex-input"
               style={{ flex: 1 }}
@@ -299,7 +309,14 @@ export function GlobalSettingsTab({
             <input
               type="text"
               value={plotSettings.yLabel}
-              onInput={(e) => setPlotSettings({ ...plotSettings, yLabel: e.currentTarget.value })}
+              onFocus={() => startTransaction?.()}
+              onBlur={() => commitTransaction?.("Update y-axis label")}
+              onInput={(e) =>
+                setPlotSettings(
+                  { ...plotSettings, yLabel: e.currentTarget.value },
+                  true,
+                )
+              }
               placeholder="Label"
               className="flex-input"
               style={{ flex: 1 }}

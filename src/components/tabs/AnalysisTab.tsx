@@ -297,9 +297,12 @@ export function AnalysisTab({
               <RangeInput
                 label="Line Width"
                 value={s.regression.width}
+                onPointerDown={() => startTransaction?.()}
+                onPointerUp={() => commitTransaction?.("Change regression width")}
                 onMouseDown={() => startTransaction?.()}
+                onMouseUp={() => commitTransaction?.("Change regression width")}
                 onInput={(val) => updateSeries(s.id, { regression: { ...s.regression, width: val } }, true)}
-                onChange={() => commitTransaction?.("Change regression width")}
+                onChange={() => {}}
                 min="1"
                 max="10"
                 unit="px"

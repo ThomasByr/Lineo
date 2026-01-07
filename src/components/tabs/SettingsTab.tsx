@@ -25,9 +25,12 @@ export function SettingsTab({ series, updateSeries, startTransaction, commitTran
           <RangeInput
             label="Point Size"
             value={s.pointSize}
+            onPointerDown={() => startTransaction?.()}
+            onPointerUp={() => commitTransaction?.("Change point size")}
             onMouseDown={() => startTransaction?.()}
+            onMouseUp={() => commitTransaction?.("Change point size")}
             onInput={(val) => updateSeries(s.id, { pointSize: val }, true)}
-            onChange={() => commitTransaction?.("Change point size")}
+            onChange={() => {}}
             min="1"
             max="20"
             unit="px"
@@ -63,9 +66,12 @@ export function SettingsTab({ series, updateSeries, startTransaction, commitTran
               <RangeInput
                 label="Line Width"
                 value={s.width}
+                onPointerDown={() => startTransaction?.()}
+                onPointerUp={() => commitTransaction?.("Change line width")}
                 onMouseDown={() => startTransaction?.()}
+                onMouseUp={() => commitTransaction?.("Change line width")}
                 onInput={(val) => updateSeries(s.id, { width: val }, true)}
-                onChange={() => commitTransaction?.("Change line width")}
+                onChange={() => {}}
                 min="1"
                 max="10"
                 unit="px"
