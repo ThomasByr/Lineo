@@ -176,6 +176,9 @@ h1 {
 
 .control-group input[type="range"] {
   width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  display: block; /* Removes any inline spacing */
 }
 
 .controls {
