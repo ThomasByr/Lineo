@@ -19,7 +19,7 @@
 > [!NOTE]
 > You can download the latest release of Linéo for your system from the [Releases](https://github.com/ThomasByr/Lineo/releases) page.
 
-Please download the appropriate archive for your operating system, extract it, and run the executable inside.
+Please download the appropriate installer for your operating system, run the installer, and follow the installation instructions.
 
 On MacOS, both Intel and Apple Silicon architectures are supported.
 
@@ -34,11 +34,13 @@ npm install
 npm run tauri build
 ```
 
-This will create the application binaries in the `src-tauri/target/release/bundle` directory.
+This will create the application binaries in the `src-tauri/target/release` directory. Installers are also generated in the `src-tauri/target/release/bundle` directory.
 
-### Web Version
+You can also run the application in development mode with:
 
-Linéo can also be built as a static website. See [WEB_DEPLOY.md](WEB_DEPLOY.md) for details.
+```bash
+npm run tauri dev
+```
 
 ## Usage
 
