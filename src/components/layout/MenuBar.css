@@ -144,3 +144,12 @@
   min-width: 40px;
   text-align: center;
 }
+
+.project-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+  opacity: 0.8;
+  pointer-events: none; /* Let clicks pass through to menubar for closing menus unless we want interaction */
+}

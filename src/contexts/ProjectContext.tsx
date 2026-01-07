@@ -58,6 +58,8 @@ interface ProjectContextType {
   setExportScale: (scale: number) => void;
   isExportModalOpen: boolean;
   setIsExportModalOpen: (isOpen: boolean) => void;
+
+  projectName: string | null;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -109,6 +111,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
 
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [hasSavedPath, setHasSavedPath] = useState(false);
+  const [projectName, setProjectName] = useState<string | null>(null);
   
   const exportHandlerRef = useRef<((format: "png" | "jpg") => Promise<void>) | null>(null);
 
@@ -120,12 +123,18 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const seriesRef = useRef(series);
   const plotSettingsRef = useRef(plotSettings);
   const viewModeRef = useRef(viewMode);
+  // Track hasSavedPath and projectName in refs for callbacks
+  const hasSavedPathRef = useRef(hasSavedPath);
+  const projectNameRef = useRef(projectName);
+
   const transactionStartRef = useRef<{ series: Series[]; plotSettings: PlotSettings } | null>(null);
 
   // Update refs when state changes
   seriesRef.current = series;
   plotSettingsRef.current = plotSettings;
   viewModeRef.current = viewMode;
+  hasSavedPathRef.current = hasSavedPath;
+  projectNameRef.current = projectName;
 
   const _setSeries = useCallback((newSeries: Series[]) => {
     setSeriesState(newSeries);
@@ -447,9 +456,12 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
 
         currentPathRef.current = path; // Update current path
         setHasSavedPath(true);
+        const name = path.split(/[/\\]/).pop() || "project";
+        setProjectName(name);
+
         await invoke("save_text_file", { path, content });
 
-        let message = `Project saved as ${path.split(/[/\\]/).pop() || "project"}`;
+        let message = `Project saved as ${name}`;
         const parts = path.split(/[/\\]/);
         const fileName = parts.pop();
         const folderName = parts.pop();
@@ -489,6 +501,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
             const writable = await handle.createWritable();
             await writable.write(blob);
             await writable.close();
+            setProjectName(handle.name);
             addNotification("success", `Project saved as ${handle.name}`);
             return;
           } catch (err: any) {
@@ -543,9 +556,18 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   );
 
   const loadProject = useCallback(async () => {
+    // Capture state BEFORE any changes. Using refs to ensure we get current state.
+    const prevSeries = seriesRef.current;
+    const prevSettings = plotSettingsRef.current;
+    const prevViewMode = viewModeRef.current;
+    const prevPath = currentPathRef.current;
+    const prevHasSavedPath = hasSavedPathRef.current;
+    const prevProjectName = projectNameRef.current;
+
     try {
       let content = "";
       let loadedFileName = "";
+      let loadedPath: string | null = null;
 
       if (isTauri()) {
         const path = await open({
@@ -558,8 +580,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         });
 
         if (!path) return;
-        currentPathRef.current = path; // Update current path
-        setHasSavedPath(true);
+        loadedPath = path;
         loadedFileName = path.split(/[/\\]/).pop() || "project";
         content = (await invoke("read_text_file_custom", { path })) as string;
       } else {
@@ -588,25 +609,28 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
       const projectData = JSON.parse(content);
 
       if (projectData.version === 1) {
-        const prevSeries = seriesRef.current;
-        const prevSettings = plotSettingsRef.current;
-        const prevViewMode = viewModeRef.current;
-
         _setSeries(projectData.series);
         _setPlotSettings(projectData.plotSettings);
         if (projectData.viewMode) {
           _setViewMode(projectData.viewMode);
         }
+        
+        // Update current state
+        if (loadedPath) {
+           currentPathRef.current = loadedPath;
+           setHasSavedPath(true);
+        }
+        setProjectName(loadedFileName);
 
-        // Clear history on load? Or make load an action?
-        // Usually load clears history or is a major action.
-        // Let's make it an action so we can undo the load.
         recordAction(
           `Load project "${loadedFileName}"`,
           () => {
             _setSeries(prevSeries);
             _setPlotSettings(prevSettings);
             _setViewMode(prevViewMode);
+            currentPathRef.current = prevPath;
+            setHasSavedPath(prevHasSavedPath);
+            setProjectName(prevProjectName);
           },
           () => {
             _setSeries(projectData.series);
@@ -614,6 +638,11 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
             if (projectData.viewMode) {
               _setViewMode(projectData.viewMode);
             }
+            if (loadedPath) {
+                currentPathRef.current = loadedPath;
+                setHasSavedPath(true);
+            }
+            setProjectName(loadedFileName);
           },
         );
         addNotification("success", `Project loaded: ${loadedFileName}`);
@@ -694,6 +723,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         setExportScale,
         isExportModalOpen,
         setIsExportModalOpen,
+        projectName,
       }}
     >
       {children}

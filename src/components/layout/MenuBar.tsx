@@ -24,6 +24,7 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
     autoCrop,
     toggleAutoCrop,
     setIsExportModalOpen,
+    projectName,
   } = useProject();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -204,6 +205,12 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
           </div>
         </div>
       </div>
+
+      {projectName && (
+          <div className="project-title">
+              {projectName}
+          </div>
+      )}
     </div>
   );
 }
