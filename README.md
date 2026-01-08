@@ -27,6 +27,49 @@ On MacOS, both Intel and Apple Silicon architectures are supported.
 
 To build Linéo from source, make sure you have [Node.js](https://nodejs.org/) (with npm - [fnm](https://github.com/Schniz/fnm) is recommended), [Rust](https://www.rust-lang.org/tools/install) and [Tauri prerequisites](https://tauri.app/start/prerequisites/) installed.
 
+<details><summary>All-in-one setup script (Debian-based Linux)</summary>
+
+```bash
+# tauri prerequisites
+sudo apt update
+sudo apt install libwebkit2gtk-4.1-dev \
+  build-essential \
+  curl \
+  wget \
+  file \
+  libxdo-dev \
+  libssl-dev \
+  libayatana-appindicator3-dev \
+  librsvg2-dev
+# rustup
+curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+source $HOME/.cargo/env
+# nodejs + npm (using fnm)
+cargo install fnm --locked
+eval "$(fnm env)"
+fnm install --lts
+fnm use --lts
+```
+
+</details>
+
+<details><summary>(Not so) all-in-one setup script (Windows - PowerShell)</summary>
+
+```powershell
+# Install rustup
+Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
+Start-Process -FilePath .\rustup-init.exe -ArgumentList "-y" -NoNewWindow -Wait
+Remove-Item .\rustup-init.exe
+$env:Path += ";$env:USERPROFILE\.cargo\bin"
+# Install fnm (Node.js version manager)
+cargo install fnm --locked
+$env:Path += ";$env:USERPROFILE\.cargo\bin"
+fnm install --lts
+fnm use --lts
+```
+
+</details>
+
 Then, clone the repository and run the following commands in the project directory:
 
 ```bash
