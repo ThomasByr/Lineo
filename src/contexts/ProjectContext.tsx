@@ -2,6 +2,7 @@ import { useContext, useState, useCallback, useRef, useEffect } from "preact/hoo
 import { createContext, ComponentChildren } from "preact";
 import { Series, PlotSettings, DataPoint, ViewMode } from "../types";
 import { createSeries } from "../utils";
+import { calculateRegression } from "../regressionHelper";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useNotification } from "./NotificationContext";
@@ -254,6 +255,22 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
       if (!targetSeries) return;
 
       const updatedSeriesItem = { ...targetSeries, ...updates };
+
+      // Auto-recalculate regression if data changed and regression is active/auto
+      if (
+        updates.data &&
+        updatedSeriesItem.regression.type !== "none" &&
+        updatedSeriesItem.regression.type !== "manual" &&
+        updatedSeriesItem.regression.mode !== "manual"
+      ) {
+        updatedSeriesItem.regressionPoints = calculateRegression(
+          updatedSeriesItem.data,
+          updatedSeriesItem.regression.type,
+          updatedSeriesItem.regression.order,
+          updatedSeriesItem.regression.forceOrigin,
+        );
+      }
+
       const nextSeries = prevSeries.map((s) => (s.id === id ? updatedSeriesItem : s));
 
       _setSeries(nextSeries);
