@@ -91,7 +91,12 @@ export function CustomSelect({ value, options, onChange, className = "" }: Custo
         </span>
       </div>
       {isOpen && (
-        <div id={optionsId} className="custom-select-options" role="listbox" aria-labelledby={`${optionsId}-trigger`}>
+        <div
+          id={optionsId}
+          className="custom-select-options"
+          role="listbox"
+          aria-labelledby={`${optionsId}-trigger`}
+        >
           {options.map((option, idx) => (
             <div
               id={`${optionsId}-option-${option.value}`}

@@ -25,7 +25,7 @@ export function ExportSettingsModal({
     prevActive.current = document.activeElement as HTMLElement | null;
     setTimeout(() => {
       const first = modalRef.current?.querySelector<HTMLElement>(
-        "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])"
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       first?.focus();
     }, 0);
@@ -78,7 +78,9 @@ export function ExportSettingsModal({
           boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
         }}
       >
-        <h3 id="export-settings-dialog" style={{ marginTop: 0 }}>Export Settings</h3>
+        <h3 id="export-settings-dialog" style={{ marginTop: 0 }}>
+          Export Settings
+        </h3>
         <div style={{ marginBottom: "15px" }}>
           <label
             style={{

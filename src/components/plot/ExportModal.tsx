@@ -33,7 +33,7 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
     // Focus first focusable element inside the modal
     setTimeout(() => {
       const first = modalRef.current?.querySelector<HTMLElement>(
-        "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])"
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       first?.focus();
     }, 0);
@@ -138,7 +138,9 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
           gap: "16px",
         }}
       >
-        <h3 id="export-dialog-title" style={{ margin: "0 0 8px 0" }}>Export Chart</h3>
+        <h3 id="export-dialog-title" style={{ margin: "0 0 8px 0" }}>
+          Export Chart
+        </h3>
 
         <div className="control-group" style={{ display: "flex", gap: "20px" }}>
           <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
