@@ -43,16 +43,18 @@ export async function captureCanvas(
 }
 
 export function createSeries(name: string, data: DataPoint[], existingCount: number = 0): Series {
+  const color =
+    "#" +
+    Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, "0");
+
   return {
     id: crypto.randomUUID(),
     name: name || `Series ${existingCount + 1}`,
     data,
     visible: true,
-    color:
-      "#" +
-      Math.floor(Math.random() * 16777215)
-        .toString(16)
-        .padStart(6, "0"),
+    color,
     width: 2,
     showLine: false,
     lineStyle: "solid",
@@ -60,7 +62,7 @@ export function createSeries(name: string, data: DataPoint[], existingCount: num
     pointStyle: "circle",
     regression: {
       type: "none",
-      color: "#ff0000",
+      color: color, // Default regression color to the series color
       width: 2,
       style: "solid",
       mode: "auto",
