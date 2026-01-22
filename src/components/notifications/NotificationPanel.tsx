@@ -1,30 +1,22 @@
 import { useNotification } from "../../contexts/NotificationContext";
 import { NotificationCard } from "./NotificationCard";
 import { useEffect, useRef } from "preact/hooks";
+import { useClickOutside } from "../../hooks/useClickOutside";
 
 export function NotificationPanel() {
   const { notifications, isPanelOpen, closePanel, clearAllNotifications, markAsRead } = useNotification();
   const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(event.target as Node) &&
-        !(event.target as Element).closest(".notification-bell-btn")
-      ) {
+  useClickOutside(
+    panelRef,
+    (event) => {
+      // Don't close if clicking the bell button (it handles toggling)
+      if (!(event.target as Element).closest(".notification-bell-btn")) {
         closePanel();
       }
-    };
-
-    if (isPanelOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isPanelOpen, closePanel]);
+    },
+    isPanelOpen,
+  );
 
   useEffect(() => {
     if (isPanelOpen) {

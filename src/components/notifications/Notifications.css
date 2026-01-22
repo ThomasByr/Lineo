@@ -129,6 +129,20 @@
   overflow-y: auto;
   max-height: 400px;
   padding: 0;
+  width: 100%;
+}
+
+.notification-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
 
 .no-notifications {
@@ -147,6 +161,8 @@
   position: relative;
   transition: background-color 0.2s;
   border-left: 4px solid transparent;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 :root.dark .notification-card {
@@ -255,11 +271,12 @@
   flex-direction: column;
   gap: 10px;
   pointer-events: none; /* Allow clicks to pass through container */
+  width: 320px; /* Fixed width for the toast pane */
 }
 
 .toast-item {
   pointer-events: auto; /* Re-enable clicks for toasts */
-  width: 300px;
+  width: 100%; /* Use full width of container */
   background: white;
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

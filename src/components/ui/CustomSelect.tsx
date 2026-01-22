@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "preact/hooks";
+import { useState, useRef } from "preact/hooks";
+import { useClickOutside } from "../../hooks/useClickOutside";
 
 interface Option {
   value: string;
@@ -16,18 +17,7 @@ export function CustomSelect({ value, options, onChange, className = "" }: Custo
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
 
   const selectedOption = options.find((o) => o.value === value) || options[0];
 

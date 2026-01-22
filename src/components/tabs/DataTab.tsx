@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import { Series, DataPoint } from "../../types";
 import Papa from "papaparse";
 import { openFile, readText, readExcel, FileResult } from "../../platform";
-import { parseCellRange } from "../../utils";
+import { parseCellRange, getFileName, parseDataPoints } from "../../utils";
 import { Toggle } from "../ui/Toggle";
 import { CustomSelect } from "../ui/CustomSelect";
 import { useNotification } from "../../contexts/NotificationContext";
@@ -41,12 +41,6 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
   const [manualInput, setManualInput] = useState("");
   const [manualFormat, setManualFormat] = useState<"pairs" | "lists">("pairs");
 
-  const getFileName = (file: FileResult | null) => {
-    if (!file) return "No file selected";
-    if (typeof file === "string") return file.split(/[/\\]/).pop() || file;
-    return file.name;
-  };
-
   const handleRemoveSeries = (id: string) => {
     removeSeries(id);
     if (editingId === id) {
@@ -64,16 +58,7 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
   const saveEdit = () => {
     if (!editingId) return;
 
-    const lines = editData.trim().split("\n");
-    const data: DataPoint[] = [];
-    lines.forEach((line) => {
-      const parts = line.trim().split(/[\s,]+/);
-      if (parts.length >= 2) {
-        const x = parseFloat(parts[0]);
-        const y = parseFloat(parts[1]);
-        if (!isNaN(x) && !isNaN(y)) data.push({ x, y });
-      }
-    });
+    const data = parseDataPoints(editData);
 
     updateSeries(editingId, { data });
     setEditingId(null);

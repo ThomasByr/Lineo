@@ -1,15 +1,41 @@
 import { Series, DataPoint } from "./types";
 import html2canvas from "html2canvas";
+import { FileResult } from "./platform";
 
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
 ): (...args: Parameters<T>) => void {
-  let timeout: any;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
+}
+
+/**
+ * Generates a random hex color string.
+ */
+export function getRandomColor(): string {
+  return (
+    "#" +
+    Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, "0")
+  );
+}
+
+/**
+ * Converts a Base64 string to a Uint8Array.
+ */
+export function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = window.atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
 }
 
 export async function captureCanvas(
@@ -33,21 +59,11 @@ export async function captureCanvas(
   const mimeType = format === "jpg" ? "image/jpeg" : "image/png";
   const base64Url = canvas.toDataURL(mimeType, 1.0);
   const base64 = base64Url.split(",")[1];
-  const binaryString = window.atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
+  return base64ToUint8Array(base64);
 }
 
 export function createSeries(name: string, data: DataPoint[], existingCount: number = 0): Series {
-  const color =
-    "#" +
-    Math.floor(Math.random() * 16777215)
-      .toString(16)
-      .padStart(6, "0");
+  const color = getRandomColor();
 
   return {
     id: crypto.randomUUID(),
@@ -71,7 +87,27 @@ export function createSeries(name: string, data: DataPoint[], existingCount: num
   };
 }
 
-export function parseColumn(col: string): number {
+export function getFileName(file: FileResult | null): string {
+  if (!file) return "No file selected";
+  if (typeof file === "string") return file.split(/[/\\]/).pop() || file;
+  return file.name;
+}
+
+export function parseDataPoints(text: string): DataPoint[] {
+  const lines = text.trim().split("\n");
+  const data: DataPoint[] = [];
+  lines.forEach((line) => {
+    const parts = line.trim().split(/[\s,]+/);
+    if (parts.length >= 2) {
+      const x = parseFloat(parts[0]);
+      const y = parseFloat(parts[1]);
+      if (!isNaN(x) && !isNaN(y)) data.push({ x, y });
+    }
+  });
+  return data;
+}
+
+function parseColumn(col: string): number {
   let sum = 0;
   for (let i = 0; i < col.length; i++) {
     sum *= 26;

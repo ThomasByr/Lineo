@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "preact/hooks";
 import { useProject } from "../../contexts/ProjectContext";
+import { useClickOutside } from "../../hooks/useClickOutside";
 import "./MenuBar.css";
 
 interface MenuBarProps {
@@ -29,23 +30,15 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setActiveMenu(null);
-      }
-    };
+  useClickOutside(menuRef, () => setActiveMenu(null), activeMenu !== null);
 
+  // Close menu on window blur
+  useEffect(() => {
     const handleBlur = () => {
       setActiveMenu(null);
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("blur", handleBlur);
-
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("blur", handleBlur);
     };
   }, []);
