@@ -230,6 +230,22 @@ h1 {
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+  height: 100%; /* Fill header height so child controls can be centered vertically */
+}
+
+/* Keep labels pinned to the top */
+.view-control-group .control-label {
+  align-self: flex-start;
+  margin-top: 0;
+}
+
+/* Center any control row / button inside the group's vertical space */
+.view-control-group > *:not(.control-label) {
+  margin-top: auto;
+  margin-bottom: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .control-label {
@@ -243,8 +259,9 @@ h1 {
 
 .divider {
   width: 1px;
-  height: 30px;
+  height: 36px; /* Match button visual height for center alignment */
   background-color: #e0e0e0;
+  align-self: center; /* Align to center of header/toolbar */
 }
 
 :root.dark .divider {
