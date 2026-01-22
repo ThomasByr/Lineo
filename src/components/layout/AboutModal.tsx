@@ -1,5 +1,6 @@
 import { openExternal } from "../../platform";
 import { useEffect, useRef } from "preact/hooks";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 
 interface AboutModalProps {
   onClose: () => void;
@@ -7,6 +8,8 @@ interface AboutModalProps {
 
 export function AboutModal({ onClose }: AboutModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(modalRef, true);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -16,7 +19,7 @@ export function AboutModal({ onClose }: AboutModalProps) {
     };
     document.addEventListener("keydown", handleKeyDown);
     
-    // Trap focus in modal - simplified version
+    // Initial focus in modal
     if (modalRef.current) {
         modalRef.current.focus();
     }
