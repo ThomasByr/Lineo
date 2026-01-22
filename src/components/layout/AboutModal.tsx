@@ -1,10 +1,34 @@
 import { openExternal } from "../../platform";
+import { useEffect, useRef } from "preact/hooks";
 
 interface AboutModalProps {
   onClose: () => void;
 }
 
 export function AboutModal({ onClose }: AboutModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    
+    // Trap focus in modal - simplified version
+    if (modalRef.current) {
+        modalRef.current.focus();
+    }
+
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  const handleLinkClick = (e: MouseEvent, url: string) => {
+    e.preventDefault();
+    openExternal(url);
+  };
+
   return (
     <div
       style={{
@@ -20,8 +44,13 @@ export function AboutModal({ onClose }: AboutModalProps) {
         zIndex: 10000,
       }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="about-title"
     >
       <div
+        ref={modalRef}
+        tabIndex={-1}
         style={{
           backgroundColor: "var(--bg-color, #fff)",
           color: "var(--text-color, #000)",
@@ -30,32 +59,27 @@ export function AboutModal({ onClose }: AboutModalProps) {
           maxWidth: "400px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
           position: "relative",
+          outline: "none"
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ marginTop: 0 }}>About Linéo</h2>
+        <h2 id="about-title" style={{ marginTop: 0 }}>About Linéo</h2>
         <p>Linéo is a lightweight, high-performance data visualization and regression analysis tool.</p>
         <p>Version: {__APP_VERSION__}</p>
         <p>Build with Tauri & Preact.</p>
         <p>
           Author: ThomasByr -{" "}
           <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              openExternal("https://github.com/thomasbyr");
-            }}
+            href="https://github.com/thomasbyr"
+            onClick={(e) => handleLinkClick(e as any, "https://github.com/thomasbyr")}
             style={{ color: "var(--text-color, #000)" }}
           >
             GitHub
           </a>{" "}
           |{" "}
           <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              openExternal("https://github.com/thomasbyr/lineo");
-            }}
+            href="https://github.com/thomasbyr/lineo"
+            onClick={(e) => handleLinkClick(e as any, "https://github.com/thomasbyr/lineo")}
             style={{ color: "var(--text-color, #000)" }}
           >
             Project

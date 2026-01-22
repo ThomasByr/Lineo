@@ -58,6 +58,9 @@ export function Toast({ notification }: ToastProps) {
       className={`toast-item ${isExiting ? "exiting" : ""}`}
       onMouseEnter={pauseTimer}
       onMouseLeave={startTimer}
+      onFocus={pauseTimer}
+      onBlur={startTimer}
+      role="alert"
     >
       <NotificationCard notification={notification} onDismiss={handleDismiss} />
     </div>
