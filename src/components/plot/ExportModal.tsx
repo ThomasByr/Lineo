@@ -1,6 +1,7 @@
 import { useState, useEffect } from "preact/hooks";
 import { Toggle } from "../ui/Toggle";
 import { RangeInput } from "../ui/RangeInput";
+import { NumberInput } from "../ui/NumberInput";
 
 interface ExportOptions {
   format: "png" | "jpg";
@@ -17,11 +18,36 @@ interface ExportModalProps {
 }
 
 export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportModalProps) {
-  const [format, setFormat] = useState<"png" | "jpg">("png");
-  const [useGlobalScale, setUseGlobalScale] = useState(true);
-  const [customScale, setCustomScale] = useState(2);
-  const [transparent, setTransparent] = useState(false);
-  const [quality, setQuality] = useState(0.9);
+  const [format, setFormat] = useState<"png" | "jpg">(() => {
+    return (localStorage.getItem("exportFormat") as "png" | "jpg") || "png";
+  });
+  
+  const [useGlobalScale, setUseGlobalScale] = useState(() => {
+    const saved = localStorage.getItem("exportUseGlobalScale");
+    return saved ? saved === "true" : true;
+  });
+
+  const [customScale, setCustomScale] = useState(2); // Don't persist value, just preference to use it or not
+
+  const [transparent, setTransparent] = useState(() => {
+    const saved = localStorage.getItem("exportTransparent");
+    return saved ? saved === "true" : false;
+  });
+
+  const [quality, setQuality] = useState(() => {
+    const saved = localStorage.getItem("exportQuality");
+    return saved ? parseFloat(saved) : 0.9;
+  });
+
+  // Save settings when they change
+  useEffect(() => {
+    if (isOpen) {
+      localStorage.setItem("exportFormat", format);
+      localStorage.setItem("exportUseGlobalScale", String(useGlobalScale));
+      localStorage.setItem("exportTransparent", String(transparent));
+      localStorage.setItem("exportQuality", String(quality));
+    }
+  }, [format, useGlobalScale, transparent, quality, isOpen]);
 
   // Sync custom scale with global when checkbox is checked, initially
   useEffect(() => {
@@ -124,12 +150,52 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
                 <RangeInput
                   label=""
                   value={customScale}
-                  min={1}
+                  min={0.5}
                   max={10}
                   step={0.5}
                   onChange={setCustomScale}
+                  displayValue={false}
+                  style={{ flex: 1 }}
                 />
-                <span style={{ minWidth: "40px", textAlign: "right" }}>{customScale}x</span>
+                <button 
+                  onClick={() => setCustomScale(customScale === 0.1 ? 0.5 : 0.1)}
+                  style={{ 
+                    fontSize: "0.8em", 
+                    padding: "2px 6px", 
+                    background: customScale === 0.1 ? "var(--accent-color, #4caf50)" : "transparent",
+                    color: customScale === 0.1 ? "white" : "inherit",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    cursor: "pointer"
+                  }}
+                  title="Low resolution preview (0.1x)"
+                >
+                  0.1x
+                </button>
+                <div style={{ width: "60px" }}>
+                  <NumberInput
+                    value={customScale}
+                    onChange={(val) => {
+                      if (val !== undefined) {
+                        let newVal = val;
+                        // Special case: allow 0.1
+                        if (Math.abs(newVal - 0.1) < 0.01) {
+                            newVal = 0.1;
+                        } else {
+                            // Round to nearest 0.5
+                            newVal = Math.round(newVal * 2) / 2;
+                            // Values below 0.5 (except 0.1) should snap to 0.5
+                            if (newVal < 0.5) newVal = 0.5;
+                        }
+                        setCustomScale(Math.max(0.1, Math.min(10, newVal)));
+                      }
+                    }}
+                    min={customScale === 0.1 ? 0.1 : 0.5}
+                    max={10}
+                    step={customScale === 0.1 ? 0.4 : 0.5}
+                    float={true}
+                  />
+                </div>
               </div>
             )}
             {!useGlobalScale && (
@@ -164,6 +230,7 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
                   max={1.0}
                   step={0.1}
                   onChange={setQuality}
+                  displayValue={false}
                 />
               </div>
             </div>
