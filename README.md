@@ -107,7 +107,7 @@ On the above image:
    - **Settings**: settings for the canvas, like axes limits, grid lines, titles, etc.
 6. Action buttons:
    - **Enter draw mode**: allows you to draw points directly on the canvas with the mouse and exporting them as a "serie".
-   - **Export PNG/JPG**: export the current canvas as an image.
+   - **Export**: open the export modal to save the current canvas as a PNG or JPG image.
    - **Copy to clipboard**: copy the current canvas to the clipboard as an image.
 7. Action settings:
    - **Auto Crop**: automatically crops exported images to tightly fit the content.

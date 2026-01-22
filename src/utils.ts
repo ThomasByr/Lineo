@@ -43,21 +43,23 @@ export async function captureCanvas(
   format: "png" | "jpg",
   autoCrop: boolean = true,
   scale: number = 2,
+  transparent: boolean = false,
+  quality: number = 1.0,
 ): Promise<Uint8Array> {
   const isDark = document.documentElement.classList.contains("dark");
   const backgroundColor = isDark ? "#1e1e1e" : "#ffffff";
 
   let canvas = await html2canvas(container, {
-    backgroundColor,
+    backgroundColor: transparent ? null : backgroundColor,
     scale,
   });
 
   if (autoCrop) {
-    canvas = trimCanvas(canvas, backgroundColor);
+    canvas = trimCanvas(canvas, transparent ? null : backgroundColor);
   }
 
   const mimeType = format === "jpg" ? "image/jpeg" : "image/png";
-  const base64Url = canvas.toDataURL(mimeType, 1.0);
+  const base64Url = canvas.toDataURL(mimeType, quality);
   const base64 = base64Url.split(",")[1];
   return base64ToUint8Array(base64);
 }
@@ -139,7 +141,7 @@ export function parseCellRange(range: string): { col: number; rowStart: number; 
   };
 }
 
-function trimCanvas(canvas: HTMLCanvasElement, backgroundColor: string): HTMLCanvasElement {
+function trimCanvas(canvas: HTMLCanvasElement, backgroundColor: string | null): HTMLCanvasElement {
   const ctx = canvas.getContext("2d");
   if (!ctx) return canvas;
 
@@ -151,7 +153,8 @@ function trimCanvas(canvas: HTMLCanvasElement, backgroundColor: string): HTMLCan
   let bgR = 255,
     bgG = 255,
     bgB = 255;
-  if (backgroundColor.startsWith("#")) {
+  
+  if (backgroundColor && backgroundColor.startsWith("#")) {
     const hex = backgroundColor.substring(1);
     if (hex.length === 3) {
       bgR = parseInt(hex[0] + hex[0], 16);
@@ -169,6 +172,9 @@ function trimCanvas(canvas: HTMLCanvasElement, backgroundColor: string): HTMLCan
     const g = data[i + 1];
     const b = data[i + 2];
     const a = data[i + 3];
+    if (backgroundColor === null) {
+      return a === 0;
+    }
     return a === 0 || (r === bgR && g === bgG && b === bgB);
   };
 
@@ -251,8 +257,10 @@ function trimCanvas(canvas: HTMLCanvasElement, backgroundColor: string): HTMLCan
   const trimmedCtx = trimmedCanvas.getContext("2d");
   if (!trimmedCtx) return canvas;
 
-  trimmedCtx.fillStyle = backgroundColor;
-  trimmedCtx.fillRect(0, 0, trimmedWidth, trimmedHeight);
+  if (backgroundColor) {
+    trimmedCtx.fillStyle = backgroundColor;
+    trimmedCtx.fillRect(0, 0, trimmedWidth, trimmedHeight);
+  }
 
   trimmedCtx.drawImage(canvas, left, top, trimmedWidth, trimmedHeight, 0, 0, trimmedWidth, trimmedHeight);
   return trimmedCanvas;

@@ -22,6 +22,7 @@ import { captureCanvas } from "../../utils";
 import { useResizeObserver } from "../../hooks/useResizeObserver";
 import { CustomLegend } from "./CustomLegend";
 import { ExportSettingsModal } from "./ExportSettingsModal";
+import { ExportModal } from "./ExportModal";
 
 ChartJS.register(
   LinearScale,
@@ -77,6 +78,8 @@ export function PlotArea({
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
+  const [showExportModal, setShowExportModal] = useState(false);
+
   const {
     autoCrop,
     toggleAutoCrop,
@@ -122,6 +125,11 @@ export function PlotArea({
   useResizeObserver(containerRef, () => updateSize(), 50);
 
   useEffect(() => {
+    registerExportHandler(async () => setShowExportModal(true));
+    return () => registerExportHandler(async () => {}); // cleanup
+  }, [registerExportHandler]);
+
+  useEffect(() => {
     updateSize();
   }, [plotSettings?.aspectRatio]);
 
@@ -161,13 +169,14 @@ export function PlotArea({
     };
   }, [drawMode]);
 
-  const handleExport = async (format: "png" | "jpg") => {
+  const handleExport = async (options: { format: "png" | "jpg"; scale: number; transparent: boolean; quality: number }) => {
     if (!containerRef.current) {
       console.error("Container reference not found");
       addNotification("error", "Chart not ready yet");
       return;
     }
 
+    const { format, scale, transparent, quality } = options;
     const chart = chartRef.current;
     const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
     let restoreRequired = false;
@@ -176,7 +185,7 @@ export function PlotArea({
 
     if (chart) {
       originalDPR = chart.options.devicePixelRatio || null;
-      chart.options.devicePixelRatio = exportScale;
+      chart.options.devicePixelRatio = scale;
       chart.resize();
     }
 
@@ -203,7 +212,7 @@ export function PlotArea({
     }
 
     try {
-      const bytes = await captureCanvas(containerRef.current, format, autoCrop, exportScale);
+      const bytes = await captureCanvas(containerRef.current, format, autoCrop, scale, transparent, quality);
       // Cast to any to avoid "SharedArrayBuffer" type mismatch error
       const blob = new Blob([bytes as any], {
         type: format === "jpg" ? "image/jpeg" : "image/png",
@@ -882,11 +891,6 @@ export function PlotArea({
     events: ["mousemove", "mouseout", "click", "touchstart", "touchmove"],
   };
 
-  useEffect(() => {
-    registerExportHandler(handleExport);
-    return () => registerExportHandler(async () => {}); // cleanup
-  }, [registerExportHandler]);
-
   return (
     <div className="plot-area" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
       <div className="controls">
@@ -894,8 +898,7 @@ export function PlotArea({
           {drawMode ? "Exit Draw Mode" : "Enter Draw Mode"}
         </button>
         {drawMode && bezierPoints.length > 0 && <button onClick={saveDrawnCurve}>Save as Series</button>}
-        <button onClick={() => handleExport("png")}>Export PNG</button>
-        <button onClick={() => handleExport("jpg")}>Export JPG</button>
+        <button onClick={() => setShowExportModal(true)}>Export</button>
         <button onClick={handleCopy}>Copy to Clipboard</button>
 
         <div
@@ -1024,6 +1027,12 @@ export function PlotArea({
         scale={exportScale}
         onScaleChange={setExportScale}
         onReset={() => setExportScale(2)}
+      />
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        onExport={handleExport}
+        globalScale={exportScale}
       />
     </div>
   );
