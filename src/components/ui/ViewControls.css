@@ -122,6 +122,65 @@
   display: inline-block; /* Since it might be a div or label wrapper */
 }
 
+/* Badge shown when view mode is temporarily overridden (draw/edit) */
+.override-badge {
+  background-color: #ff9800; /* amber */
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+:root.dark .override-badge {
+  background-color: #ffb74d;
+  color: #222;
+}
+
+/* Reserved space next to view toggle so the control doesn't move when the badge appears */
+.override-space {
+  flex: 0 0 36px;
+}
+
+/* Align the label with the left edge of the inner toggle content (tight to the right of reserved badge space) */
+.control-label--align-toggle {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 44px; /* Reserved badge space (36px) + small nudge (8px) to align with inner content */
+}
+
+/* Compact circular badge (emoji only) */
+.override-badge {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #ff9800;
+  color: #fff;
+  font-size: 1.05em;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+
+:root.dark .override-badge {
+  background-color: #ffb74d;
+  color: #222;
+}
+
+/* Outline the toggle with the same color when overridden. Use box-shadow so layout doesn't shift */
+.view-mode-toggle.overridden {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 2px #ff9800;
+}
+
+:root.dark .view-mode-toggle.overridden {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 0 2px #ffb74d;
+}
+
 .autosave-switch:hover {
   border-color: transparent;
 }

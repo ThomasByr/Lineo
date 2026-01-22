@@ -34,8 +34,13 @@ interface ProjectContextType {
   // Temporarily override the view mode (stack). pushViewModeOverride sets an override which
   // becomes the effective view mode until popped with popViewModeOverride. Useful for modes
   // like draw/edit which should temporarily force zoom behavior.
-  pushViewModeOverride: (mode: ViewMode) => void;
+  // `source` is an optional short tag (e.g., 'draw' | 'edit') used for UI hints and notifications.
+  pushViewModeOverride: (mode: ViewMode, source?: string) => void;
   popViewModeOverride: () => void;
+
+  // Whether any override is active and (if so) info on the top-most override
+  overrideActive: boolean;
+  overrideTop: { mode: ViewMode; source?: string } | null;
 
   undo: () => void;
   redo: () => void;
@@ -133,15 +138,29 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
 
   // Support a stack of temporary overrides for view mode so transient actions
   // (draw mode, editing points) can force the view to a particular mode and
-  // then restore the previous mode when done.
-  const overrideStackRef = useRef<ViewMode[]>([]);
+  // then restore the previous mode when done. Each entry optionally contains
+  // a `source` identifier (e.g., 'draw' or 'edit') for UI hints / notifications.
+  const overrideStackRef = useRef<{ mode: ViewMode; source?: string }[]>([]);
   const [, setOverrideTick] = useState(0);
 
-  const pushViewModeOverride = useCallback((mode: ViewMode) => {
-    overrideStackRef.current.push(mode);
+  const pushViewModeOverride = useCallback((mode: ViewMode, source?: string) => {
+    const prevTop = overrideStackRef.current[overrideStackRef.current.length - 1];
+    overrideStackRef.current.push({ mode, source });
     // Bump a dummy state to force re-render so consumers get the new effective mode
     setOverrideTick((n) => n + 1);
-  }, []);
+
+    // If a source is provided and it's a 'draw' or 'edit' override, show a short toast
+    // when the override first becomes active (i.e., it wasn't already the top source).
+    try {
+      if (source && source !== prevTop?.source && (source === "draw" || source === "edit")) {
+        const message = source === "draw" ? "Zoom locked while drawing" : "Zoom locked while editing points";
+        addNotification("info", message);
+      }
+    } catch (e) {
+      // If notifications aren't available for any reason, ignore
+      // (keeps behavior graceful in non-UI contexts)
+    }
+  }, [addNotification]);
 
   const popViewModeOverride = useCallback(() => {
     if (overrideStackRef.current.length === 0) return;
@@ -737,8 +756,14 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
 
   // Compute effective view mode (base mode unless overrides exist)
   const effectiveViewMode = overrideStackRef.current.length
-    ? overrideStackRef.current[overrideStackRef.current.length - 1]
+    ? overrideStackRef.current[overrideStackRef.current.length - 1].mode
     : viewModeRef.current;
+
+  const overrideTop = overrideStackRef.current.length
+    ? overrideStackRef.current[overrideStackRef.current.length - 1]
+    : null;
+
+  const overrideActive = overrideStackRef.current.length > 0;
 
   return (
     <ProjectContext.Provider
@@ -754,6 +779,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         setViewMode,
         pushViewModeOverride,
         popViewModeOverride,
+        overrideActive,
+        overrideTop,
         undo,
         redo,
         canUndo: history.length > 0,

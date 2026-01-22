@@ -134,7 +134,7 @@ export function PlotArea({
     // when exiting, restore previous.
     if (drawMode) {
       if (!drawOverridePushed.current) {
-        pushViewModeOverride("locked");
+        pushViewModeOverride("locked", "draw");
         drawOverridePushed.current = true;
       }
     } else {

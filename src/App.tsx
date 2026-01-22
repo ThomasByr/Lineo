@@ -50,6 +50,8 @@ function App() {
     removeSeries,
     pushViewModeOverride,
     popViewModeOverride,
+    overrideActive,
+    overrideTop,
   } = useProject();
 
   const [appZoom, setAppZoom] = useState(() => {
@@ -84,7 +86,7 @@ function App() {
   useEffect(() => {
     if (editingSeriesId) {
       if (!editingOverridePushed.current) {
-        pushViewModeOverride("locked");
+        pushViewModeOverride("locked", "edit");
         editingOverridePushed.current = true;
       }
     } else {
@@ -406,34 +408,48 @@ function App() {
             </h1>
             <div className="header-controls">
               <div className="view-control-group">
-                <span className="control-label">Zoom & View</span>
-                <div className="view-mode-toggle">
-                  <div
-                    className="view-mode-slider"
-                    style={{
-                      transform: `translateX(calc(${["auto", "manual", "locked"].indexOf(viewMode)} * (100% + 4px)))`,
-                    }}
-                  />
-                  <div
-                    className={`view-mode-option ${viewMode === "auto" ? "active" : ""}`}
-                    onClick={() => setViewMode("auto")}
-                    title="Auto-scale to fit data"
-                  >
-                    <span>🔍 Auto</span>
+                <span className="control-label control-label--align-toggle">Zoom & View</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div className="override-space" style={{ width: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {overrideActive && overrideTop ? (
+                      <div
+                        className="override-badge"
+                        title={`Zoom forced to ${overrideTop.mode} by ${overrideTop.source || "system"}`}
+                      >
+                        {/* emoji only, no text */}
+                        <span style={{ fontSize: "1.05em" }}>{overrideTop.source === "draw" ? "🖊️" : overrideTop.source === "edit" ? "✏️" : "🔒"}</span>
+                      </div>
+                    ) : null}
                   </div>
-                  <div
-                    className={`view-mode-option ${viewMode === "manual" ? "active" : ""}`}
-                    onClick={() => setViewMode("manual")}
-                    title="Pan and Zoom freely"
-                  >
-                    <span>✋ Manual</span>
-                  </div>
-                  <div
-                    className={`view-mode-option ${viewMode === "locked" ? "active" : ""}`}
-                    onClick={() => setViewMode("locked")}
-                    title="Lock view to draw/edit"
-                  >
-                    <span>🔒 Locked</span>
+
+                  <div className={`view-mode-toggle ${overrideActive ? "overridden" : ""}`}>
+                    <div
+                      className="view-mode-slider"
+                      style={{
+                        transform: `translateX(calc(${["auto", "manual", "locked"].indexOf(viewMode)} * (100% + 4px)))`,
+                      }}
+                    />
+                    <div
+                      className={`view-mode-option ${viewMode === "auto" ? "active" : ""}`}
+                      onClick={() => setViewMode("auto")}
+                      title="Auto-scale to fit data"
+                    >
+                      <span>🔍 Auto</span>
+                    </div>
+                    <div
+                      className={`view-mode-option ${viewMode === "manual" ? "active" : ""}`}
+                      onClick={() => setViewMode("manual")}
+                      title="Pan and Zoom freely"
+                    >
+                      <span>✋ Manual</span>
+                    </div>
+                    <div
+                      className={`view-mode-option ${viewMode === "locked" ? "active" : ""}`}
+                      onClick={() => setViewMode("locked")}
+                      title="Lock view to draw/edit"
+                    >
+                      <span>🔒 Locked</span>
+                    </div>
                   </div>
                 </div>
               </div>
