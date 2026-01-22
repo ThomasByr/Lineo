@@ -85,6 +85,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 :root.dark .notification-header {
@@ -95,6 +97,8 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  flex-grow: 1;
+  text-align: left;
 }
 
 .clear-all-btn {
