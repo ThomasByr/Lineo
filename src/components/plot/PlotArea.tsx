@@ -899,7 +899,12 @@ export function PlotArea({
   return (
     <div className="plot-area" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
       <div className="controls">
-        <button onClick={() => setDrawMode(!drawMode)} style={{ backgroundColor: drawMode ? "#ffcccc" : "" }}>
+        <button
+          onClick={() => setDrawMode(!drawMode)}
+          className={`draw-toggle ${drawMode ? "active" : ""}`}
+          aria-pressed={drawMode}
+          title={drawMode ? "Exit Draw Mode" : "Enter Draw Mode"}
+        >
           {drawMode ? "Exit Draw Mode" : "Enter Draw Mode"}
         </button>
         {drawMode && bezierPoints.length > 0 && <button onClick={saveDrawnCurve}>Save as Series</button>}
