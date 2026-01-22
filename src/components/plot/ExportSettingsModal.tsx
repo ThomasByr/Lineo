@@ -1,5 +1,6 @@
 import { ResolutionControl } from "./ResolutionControl";
 import { useRef, useEffect } from "preact/hooks";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 
 interface ExportSettingsModalProps {
   isOpen: boolean;
@@ -38,6 +39,9 @@ export function ExportSettingsModal({
       prevActive.current?.focus();
     };
   }, [isOpen, onClose]);
+
+  // Keep Tab navigation inside modal while open
+  useFocusTrap(modalRef, isOpen);
 
   if (!isOpen) return null;
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "preact/hooks";
 import { Toggle } from "../ui/Toggle";
 import { RangeInput } from "../ui/RangeInput";
 import { ResolutionControl } from "./ResolutionControl";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 
 interface ExportOptions {
   format: "png" | "jpg";
@@ -48,6 +49,9 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
       prevActive.current?.focus();
     };
   }, [isOpen, onClose]);
+
+  // Use focus-trap to keep tab navigation inside the modal while open
+  useFocusTrap(modalRef, isOpen);
 
   const [useGlobalScale, setUseGlobalScale] = useState(() => {
     const saved = localStorage.getItem("exportUseGlobalScale");

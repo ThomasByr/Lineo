@@ -256,9 +256,15 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
                     }}
                   >
                     <span
+                      role="button"
+                      tabIndex={0}
                       onDblClick={() => startRenaming(s)}
-                      title="Double click to rename"
-                      style={{ fontWeight: 500, fontSize: "1.05em" }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") startRenaming(s);
+                      }}
+                      title={`Rename series (Enter or double-click)`}
+                      aria-label={`Rename series ${s.name}`}
+                      style={{ fontWeight: 500, fontSize: "1.05em", cursor: "pointer" }}
                     >
                       {s.name}
                     </span>
@@ -274,6 +280,8 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
                     <button
                       onClick={() => handleRemoveSeries(s.id)}
                       className="small-btn remove-btn"
+                      title={`Remove series ${s.name}`}
+                      aria-label={`Remove series ${s.name}`}
                       style={{ flex: 0 }}
                     >
                       ✕
