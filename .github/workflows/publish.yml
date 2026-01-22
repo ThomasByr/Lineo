@@ -1,13 +1,10 @@
-# - remove version from `tauri.conf.json` so it's managed by `Cargo.toml`
-# - create git-cliff's `cliff.toml` config file with `git cliff --init`
 name: "publish"
 
 on:
   push:
     tags:
       - "v*"
-
-# On each push of a `v*` git tag it will create or update a GitHub release with a generated changelog, build your app, and upload the artifacts to the release.
+  workflow_dispatch:
 
 jobs:
   publish-tauri:
