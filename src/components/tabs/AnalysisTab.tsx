@@ -296,7 +296,13 @@ export function AnalysisTab({
                         regression: { ...s.regression, color: e.currentTarget.value },
                       })
                     }
-                    style={{ height: "30px", width: "50px", padding: "0 2px", cursor: s.regression.syncColor ? "not-allowed" : "pointer", opacity: s.regression.syncColor ? 0.5 : 1 }}
+                    style={{
+                      height: "30px",
+                      width: "50px",
+                      padding: "0 2px",
+                      cursor: s.regression.syncColor ? "not-allowed" : "pointer",
+                      opacity: s.regression.syncColor ? 0.5 : 1,
+                    }}
                   />
                   <Toggle
                     label="Sync"

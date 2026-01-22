@@ -188,7 +188,12 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
           Settings
         </div>
         <div className={`menu-dropdown ${activeMenu === "settings" ? "open" : ""}`} role="menu">
-          <div className="menu-option" style={{ cursor: "default", backgroundColor: "transparent" }} role="group" aria-label="Zoom controls">
+          <div
+            className="menu-option"
+            style={{ cursor: "default", backgroundColor: "transparent" }}
+            role="group"
+            aria-label="Zoom controls"
+          >
             <span>App Zoom</span>
             <div className="zoom-controls">
               <button
@@ -201,7 +206,9 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
               >
                 -
               </button>
-              <span className="zoom-value" aria-live="polite">{Math.round(zoom * 100)}%</span>
+              <span className="zoom-value" aria-live="polite">
+                {Math.round(zoom * 100)}%
+              </span>
               <button
                 className="zoom-btn"
                 onClick={(e) => {
@@ -215,8 +222,8 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
             </div>
           </div>
           <div className="menu-divider" role="separator"></div>
-          <div 
-            className="menu-option" 
+          <div
+            className="menu-option"
             onClick={() => handleAction(() => setIsExportModalOpen(true))}
             role="menuitem"
             tabIndex={0}
@@ -224,8 +231,8 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
           >
             <span>Export Settings...</span>
           </div>
-          <div 
-            className="menu-option" 
+          <div
+            className="menu-option"
             onClick={() => handleAction(toggleAutoCrop)}
             role="menuitem"
             tabIndex={0}
@@ -243,7 +250,9 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
             onClick={() => handleAction(() => setTheme(theme === "light" ? "dark" : "light"))}
             role="menuitem"
             tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, () => handleAction(() => setTheme(theme === "light" ? "dark" : "light")))}
+            onKeyDown={(e) =>
+              handleKeyDown(e, () => handleAction(() => setTheme(theme === "light" ? "dark" : "light")))
+            }
           >
             <span>{theme === "light" ? "Switch to Dark Mode 🌙" : "Switch to Light Mode ☀️"}</span>
           </div>
@@ -264,7 +273,13 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
           Help
         </div>
         <div className={`menu-dropdown ${activeMenu === "help" ? "open" : ""}`} role="menu">
-          <div className="menu-option" onClick={() => handleAction(onOpenAbout)} role="menuitem" tabIndex={0} onKeyDown={(e) => handleKeyDown(e, () => handleAction(onOpenAbout))}>
+          <div
+            className="menu-option"
+            onClick={() => handleAction(onOpenAbout)}
+            role="menuitem"
+            tabIndex={0}
+            onKeyDown={(e) => handleKeyDown(e, () => handleAction(onOpenAbout))}
+          >
             <span>About</span>
           </div>
         </div>

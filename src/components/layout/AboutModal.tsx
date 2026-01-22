@@ -18,10 +18,10 @@ export function AboutModal({ onClose }: AboutModalProps) {
       }
     };
     document.addEventListener("keydown", handleKeyDown);
-    
+
     // Initial focus in modal
     if (modalRef.current) {
-        modalRef.current.focus();
+      modalRef.current.focus();
     }
 
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -62,11 +62,13 @@ export function AboutModal({ onClose }: AboutModalProps) {
           maxWidth: "400px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
           position: "relative",
-          outline: "none"
+          outline: "none",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="about-title" style={{ marginTop: 0 }}>About Linéo</h2>
+        <h2 id="about-title" style={{ marginTop: 0 }}>
+          About Linéo
+        </h2>
         <p>Linéo is a lightweight, high-performance data visualization and regression analysis tool.</p>
         <p>Version: {__APP_VERSION__}</p>
         <p>Build with Tauri & Preact.</p>

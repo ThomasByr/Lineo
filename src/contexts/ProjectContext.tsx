@@ -315,15 +315,15 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
 
       // Sync regression color if enabled
       if (updatedSeriesItem.regression?.syncColor) {
-         if (updatedSeriesItem.regression.color !== updatedSeriesItem.color) {
-            updatedSeriesItem = {
-               ...updatedSeriesItem,
-               regression: {
-                  ...updatedSeriesItem.regression,
-                  color: updatedSeriesItem.color
-               }
-            };
-         }
+        if (updatedSeriesItem.regression.color !== updatedSeriesItem.color) {
+          updatedSeriesItem = {
+            ...updatedSeriesItem,
+            regression: {
+              ...updatedSeriesItem.regression,
+              color: updatedSeriesItem.color,
+            },
+          };
+        }
       }
 
       // Auto-recalculate regression if data changed and regression is active/auto
