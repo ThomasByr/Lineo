@@ -169,7 +169,12 @@ export function PlotArea({
     };
   }, [drawMode]);
 
-  const handleExport = async (options: { format: "png" | "jpg"; scale: number; transparent: boolean; quality: number }) => {
+  const handleExport = async (options: {
+    format: "png" | "jpg";
+    scale: number;
+    transparent: boolean;
+    quality: number;
+  }) => {
     if (!containerRef.current) {
       console.error("Container reference not found");
       addNotification("error", "Chart not ready yet");

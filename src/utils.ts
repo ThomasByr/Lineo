@@ -153,7 +153,7 @@ function trimCanvas(canvas: HTMLCanvasElement, backgroundColor: string | null): 
   let bgR = 255,
     bgG = 255,
     bgB = 255;
-  
+
   if (backgroundColor && backgroundColor.startsWith("#")) {
     const hex = backgroundColor.substring(1);
     if (hex.length === 3) {
