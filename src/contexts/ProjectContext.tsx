@@ -31,6 +31,12 @@ interface ProjectContextType {
   ) => void;
   setViewMode: (mode: ViewMode) => void;
 
+  // Temporarily override the view mode (stack). pushViewModeOverride sets an override which
+  // becomes the effective view mode until popped with popViewModeOverride. Useful for modes
+  // like draw/edit which should temporarily force zoom behavior.
+  pushViewModeOverride: (mode: ViewMode) => void;
+  popViewModeOverride: () => void;
+
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
@@ -124,6 +130,26 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const seriesRef = useRef(series);
   const plotSettingsRef = useRef(plotSettings);
   const viewModeRef = useRef(viewMode);
+
+  // Support a stack of temporary overrides for view mode so transient actions
+  // (draw mode, editing points) can force the view to a particular mode and
+  // then restore the previous mode when done.
+  const overrideStackRef = useRef<ViewMode[]>([]);
+  const [, setOverrideTick] = useState(0);
+
+  const pushViewModeOverride = useCallback((mode: ViewMode) => {
+    overrideStackRef.current.push(mode);
+    // Bump a dummy state to force re-render so consumers get the new effective mode
+    setOverrideTick((n) => n + 1);
+  }, []);
+
+  const popViewModeOverride = useCallback(() => {
+    if (overrideStackRef.current.length === 0) return;
+    overrideStackRef.current.pop();
+    // Bump a dummy state to force re-render
+    setOverrideTick((n) => n + 1);
+  }, []);
+
   // Track hasSavedPath and projectName in refs for callbacks
   const hasSavedPathRef = useRef(hasSavedPath);
   const projectNameRef = useRef(projectName);
@@ -709,18 +735,25 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
     }
   }, []);
 
+  // Compute effective view mode (base mode unless overrides exist)
+  const effectiveViewMode = overrideStackRef.current.length
+    ? overrideStackRef.current[overrideStackRef.current.length - 1]
+    : viewModeRef.current;
+
   return (
     <ProjectContext.Provider
       value={{
         series,
         plotSettings,
-        viewMode,
+        viewMode: effectiveViewMode,
         addSeries,
         updateSeries,
         removeSeries,
         setSeries,
         updatePlotSettings,
         setViewMode,
+        pushViewModeOverride,
+        popViewModeOverride,
         undo,
         redo,
         canUndo: history.length > 0,

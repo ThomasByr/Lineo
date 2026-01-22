@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "preact/hooks";
+import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./styles/forms.css";
 import "./App.css";
@@ -48,6 +48,8 @@ function App() {
     toggleAutoSave,
     hasSavedPath,
     removeSeries,
+    pushViewModeOverride,
+    popViewModeOverride,
   } = useProject();
 
   const [appZoom, setAppZoom] = useState(() => {
@@ -74,6 +76,31 @@ function App() {
 
   const [activeTab, setActiveTab] = useState<"data" | "plot" | "approx" | "settings">("data");
   const [editingSeriesId, setEditingSeriesId] = useState<string | null>(null);
+
+  const editingOverridePushed = useRef(false);
+
+  // When user starts editing points, temporarily force view mode to 'locked' so zoom is
+  // prevented during editing. Restore previous mode when editing stops.
+  useEffect(() => {
+    if (editingSeriesId) {
+      if (!editingOverridePushed.current) {
+        pushViewModeOverride("locked");
+        editingOverridePushed.current = true;
+      }
+    } else {
+      if (editingOverridePushed.current) {
+        popViewModeOverride();
+        editingOverridePushed.current = false;
+      }
+    }
+
+    return () => {
+      if (editingOverridePushed.current) {
+        popViewModeOverride();
+        editingOverridePushed.current = false;
+      }
+    };
+  }, [editingSeriesId, pushViewModeOverride, popViewModeOverride]);
 
   // Persistent Settings
   const [theme, setTheme] = useState<"light" | "dark">(() => {

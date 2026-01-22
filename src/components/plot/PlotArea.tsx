@@ -77,8 +77,10 @@ export function PlotArea({
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const { autoCrop, toggleAutoCrop, exportScale, setExportScale, isExportModalOpen, setIsExportModalOpen } =
+  const { autoCrop, toggleAutoCrop, exportScale, setExportScale, isExportModalOpen, setIsExportModalOpen, pushViewModeOverride, popViewModeOverride } =
     useProject();
+
+  const drawOverridePushed = useRef(false);
 
   const [wrapperStyle, setWrapperStyle] = useState<any>({ width: "100%", height: "100%" });
 
@@ -127,6 +129,28 @@ export function PlotArea({
       setDrawnPoints([]);
       setBezierPoints([]);
     }
+
+    // Manage temporary override: when entering draw mode, force view mode to 'locked';
+    // when exiting, restore previous.
+    if (drawMode) {
+      if (!drawOverridePushed.current) {
+        pushViewModeOverride("locked");
+        drawOverridePushed.current = true;
+      }
+    } else {
+      if (drawOverridePushed.current) {
+        popViewModeOverride();
+        drawOverridePushed.current = false;
+      }
+    }
+
+    // Cleanup in case of unmount while override is active
+    return () => {
+      if (drawOverridePushed.current) {
+        popViewModeOverride();
+        drawOverridePushed.current = false;
+      }
+    };
   }, [drawMode]);
 
   const handleExport = async (format: "png" | "jpg") => {
