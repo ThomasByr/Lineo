@@ -4,7 +4,6 @@ import { Toggle } from "../ui/Toggle";
 import { CustomSelect } from "../ui/CustomSelect";
 import { NumberInput } from "../ui/NumberInput";
 import { RangeInput } from "../ui/RangeInput";
-import { ColorInput } from "../ui/ColorInput";
 import { useNotification } from "../../contexts/NotificationContext";
 
 interface AnalysisTabProps {
@@ -285,15 +284,45 @@ export function AnalysisTab({
 
           {s.regression.type !== "none" && (
             <>
-              <ColorInput
-                label="Line Color:"
-                value={s.regression.color}
-                onChange={(val) =>
-                  updateSeries(s.id, {
-                    regression: { ...s.regression, color: val },
-                  })
-                }
-              />
+              <div className="control-group">
+                <label>Line Color:</label>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                  <input
+                    type="color"
+                    value={s.regression.color}
+                    disabled={s.regression.syncColor}
+                    onInput={(e) =>
+                      updateSeries(s.id, {
+                        regression: { ...s.regression, color: e.currentTarget.value },
+                      })
+                    }
+                    style={{ height: "30px", width: "50px", padding: "0 2px", cursor: s.regression.syncColor ? "not-allowed" : "pointer", opacity: s.regression.syncColor ? 0.5 : 1 }}
+                  />
+                  <Toggle
+                    label="Sync"
+                    checked={s.regression.syncColor || false}
+                    onChange={(checked) =>
+                      updateSeries(s.id, {
+                        regression: { ...s.regression, syncColor: checked },
+                      })
+                    }
+                    onLabel="On"
+                    offLabel="Off"
+                  />
+                  <button
+                    disabled={s.regression.syncColor}
+                    onClick={() =>
+                      updateSeries(s.id, {
+                        regression: { ...s.regression, color: s.color },
+                      })
+                    }
+                    title="One-time sync from point color"
+                    style={{ padding: "4px 8px", fontSize: "0.8em", whiteSpace: "nowrap" }}
+                  >
+                    Sync Now
+                  </button>
+                </div>
+              </div>
               <RangeInput
                 label="Line Width"
                 value={s.regression.width}

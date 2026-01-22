@@ -311,7 +311,20 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
       const targetSeries = prevSeries.find((s) => s.id === id);
       if (!targetSeries) return;
 
-      const updatedSeriesItem = { ...targetSeries, ...updates };
+      let updatedSeriesItem = { ...targetSeries, ...updates };
+
+      // Sync regression color if enabled
+      if (updatedSeriesItem.regression?.syncColor) {
+         if (updatedSeriesItem.regression.color !== updatedSeriesItem.color) {
+            updatedSeriesItem = {
+               ...updatedSeriesItem,
+               regression: {
+                  ...updatedSeriesItem.regression,
+                  color: updatedSeriesItem.color
+               }
+            };
+         }
+      }
 
       // Auto-recalculate regression if data changed and regression is active/auto
       if (

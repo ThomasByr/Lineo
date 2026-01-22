@@ -27,6 +27,7 @@ export interface RegressionSettings {
   order?: number; // For polynomial
   forceOrigin?: boolean; // For linear
   color: string;
+  syncColor?: boolean;
   width: number;
   style: "solid" | "dashed" | "dotted";
 
