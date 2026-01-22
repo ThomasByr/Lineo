@@ -74,6 +74,30 @@ export function HistoryButton({ icon, onClick, disabled, items, onItemClick, tit
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  useEffect(() => {
+    if (showList) {
+      // Focus the first item when the list opens
+      setTimeout(() => itemRefs.current[0]?.focus(), 0);
+    }
+  }, [showList]);
+
+  const openListForKeyboard = () => {
+    if (items.length > 0 && !disabled) setShowList(true);
+  };
+
+  const onButtonKeyDown = (e: KeyboardEvent) => {
+    const key = (e as any).key;
+    if (key === "ArrowDown") {
+      e.preventDefault();
+      openListForKeyboard();
+    }
+    if (key === "Enter" || key === " ") {
+      // Let normal click behavior happen
+    }
+  };
+
   return (
     <div className="history-btn-container" style={{ position: "relative" }}>
       <button
@@ -85,6 +109,9 @@ export function HistoryButton({ icon, onClick, disabled, items, onItemClick, tit
         onContextMenu={(e) => {
           e.preventDefault();
         }}
+        onKeyDown={onButtonKeyDown as any}
+        aria-haspopup="menu"
+        aria-expanded={showList}
         disabled={disabled}
         title={title}
         style={{
@@ -99,23 +126,33 @@ export function HistoryButton({ icon, onClick, disabled, items, onItemClick, tit
         {icon}
       </button>
       {showList && (
-        <div className="history-list" ref={listRef}>
+        <div className="history-list" ref={listRef} role="menu" aria-label={title}>
           {items
             .slice()
             .reverse()
             .map((item, i) => (
-              <div
+              <button
                 key={i}
                 className="history-item"
-                onMouseDown={(e) => {
-                  // Use onMouseDown to prevent focus loss before click
+                ref={(el) => {
+                  itemRefs.current[i] = el;
+                }}
+                onClick={(e) => {
                   e.preventDefault();
                   onItemClick(i + 1);
                   setShowList(false);
+                  buttonRef.current?.focus();
+                }}
+                onKeyDown={(e) => {
+                  const key = (e as any).key;
+                  if (key === "Escape") {
+                    setShowList(false);
+                    buttonRef.current?.focus();
+                  }
                 }}
               >
                 {item.description}
-              </div>
+              </button>
             ))}
         </div>
       )}

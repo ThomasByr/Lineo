@@ -1,4 +1,5 @@
 import { ResolutionControl } from "./ResolutionControl";
+import { useRef, useEffect } from "preact/hooks";
 
 interface ExportSettingsModalProps {
   isOpen: boolean;
@@ -15,6 +16,29 @@ export function ExportSettingsModal({
   onScaleChange,
   onReset,
 }: ExportSettingsModalProps) {
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const prevActive = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    prevActive.current = document.activeElement as HTMLElement | null;
+    setTimeout(() => {
+      const first = modalRef.current?.querySelector<HTMLElement>(
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])"
+      );
+      first?.focus();
+    }, 0);
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      prevActive.current?.focus();
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -36,6 +60,10 @@ export function ExportSettingsModal({
     >
       <div
         className="modal-content"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="export-settings-dialog"
         onClick={(e) => e.stopPropagation()}
         style={{
           backgroundColor: "var(--bg-color, #fff)",
@@ -46,7 +74,7 @@ export function ExportSettingsModal({
           boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
         }}
       >
-        <h3 style={{ marginTop: 0 }}>Export Settings</h3>
+        <h3 id="export-settings-dialog" style={{ marginTop: 0 }}>Export Settings</h3>
         <div style={{ marginBottom: "15px" }}>
           <label
             style={{

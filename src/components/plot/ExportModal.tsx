@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useRef } from "preact/hooks";
 import { Toggle } from "../ui/Toggle";
 import { RangeInput } from "../ui/RangeInput";
 import { ResolutionControl } from "./ResolutionControl";
@@ -21,6 +21,33 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
   const [format, setFormat] = useState<"png" | "jpg">(() => {
     return (localStorage.getItem("exportFormat") as "png" | "jpg") || "png";
   });
+
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const prevActive = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    prevActive.current = document.activeElement as HTMLElement | null;
+
+    // Focus first focusable element inside the modal
+    setTimeout(() => {
+      const first = modalRef.current?.querySelector<HTMLElement>(
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])"
+      );
+      first?.focus();
+    }, 0);
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      prevActive.current?.focus();
+    };
+  }, [isOpen, onClose]);
 
   const [useGlobalScale, setUseGlobalScale] = useState(() => {
     const saved = localStorage.getItem("exportUseGlobalScale");
@@ -89,6 +116,10 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
     >
       <div
         className="modal-content"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="export-dialog-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           backgroundColor: "var(--bg-color, #fff)",
@@ -103,7 +134,7 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
           gap: "16px",
         }}
       >
-        <h3 style={{ margin: "0 0 8px 0" }}>Export Chart</h3>
+        <h3 id="export-dialog-title" style={{ margin: "0 0 8px 0" }}>Export Chart</h3>
 
         <div className="control-group" style={{ display: "flex", gap: "20px" }}>
           <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
