@@ -81,6 +81,7 @@ export function createSeries(name: string, data: DataPoint[], existingCount: num
     regression: {
       type: "none",
       color: color, // Default regression color to the series color
+      syncColor: true,
       width: 2,
       style: "solid",
       mode: "auto",
