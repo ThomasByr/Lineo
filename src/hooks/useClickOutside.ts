@@ -1,4 +1,5 @@
-import { useEffect, RefObject } from "preact/hooks";
+import { useEffect } from "preact/hooks";
+import type { RefObject } from "preact";
 
 export function useClickOutside(
   ref: RefObject<HTMLElement>,
