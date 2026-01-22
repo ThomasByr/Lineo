@@ -143,24 +143,28 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const overrideStackRef = useRef<{ mode: ViewMode; source?: string }[]>([]);
   const [, setOverrideTick] = useState(0);
 
-  const pushViewModeOverride = useCallback((mode: ViewMode, source?: string) => {
-    const prevTop = overrideStackRef.current[overrideStackRef.current.length - 1];
-    overrideStackRef.current.push({ mode, source });
-    // Bump a dummy state to force re-render so consumers get the new effective mode
-    setOverrideTick((n) => n + 1);
+  const pushViewModeOverride = useCallback(
+    (mode: ViewMode, source?: string) => {
+      const prevTop = overrideStackRef.current[overrideStackRef.current.length - 1];
+      overrideStackRef.current.push({ mode, source });
+      // Bump a dummy state to force re-render so consumers get the new effective mode
+      setOverrideTick((n) => n + 1);
 
-    // If a source is provided and it's a 'draw' or 'edit' override, show a short toast
-    // when the override first becomes active (i.e., it wasn't already the top source).
-    try {
-      if (source && source !== prevTop?.source && (source === "draw" || source === "edit")) {
-        const message = source === "draw" ? "Zoom locked while drawing" : "Zoom locked while editing points";
-        addNotification("info", message);
+      // If a source is provided and it's a 'draw' or 'edit' override, show a short toast
+      // when the override first becomes active (i.e., it wasn't already the top source).
+      try {
+        if (source && source !== prevTop?.source && (source === "draw" || source === "edit")) {
+          const message =
+            source === "draw" ? "Zoom locked while drawing" : "Zoom locked while editing points";
+          addNotification("info", message);
+        }
+      } catch (e) {
+        // If notifications aren't available for any reason, ignore
+        // (keeps behavior graceful in non-UI contexts)
       }
-    } catch (e) {
-      // If notifications aren't available for any reason, ignore
-      // (keeps behavior graceful in non-UI contexts)
-    }
-  }, [addNotification]);
+    },
+    [addNotification],
+  );
 
   const popViewModeOverride = useCallback(() => {
     if (overrideStackRef.current.length === 0) return;

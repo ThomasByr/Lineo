@@ -77,8 +77,16 @@ export function PlotArea({
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const { autoCrop, toggleAutoCrop, exportScale, setExportScale, isExportModalOpen, setIsExportModalOpen, pushViewModeOverride, popViewModeOverride } =
-    useProject();
+  const {
+    autoCrop,
+    toggleAutoCrop,
+    exportScale,
+    setExportScale,
+    isExportModalOpen,
+    setIsExportModalOpen,
+    pushViewModeOverride,
+    popViewModeOverride,
+  } = useProject();
 
   const drawOverridePushed = useRef(false);
 

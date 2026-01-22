@@ -410,14 +410,19 @@ function App() {
               <div className="view-control-group">
                 <span className="control-label control-label--align-toggle">Zoom & View</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div className="override-space" style={{ width: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div
+                    className="override-space"
+                    style={{ width: 36, display: "flex", alignItems: "center", justifyContent: "center" }}
+                  >
                     {overrideActive && overrideTop ? (
                       <div
                         className="override-badge"
                         title={`Zoom forced to ${overrideTop.mode} by ${overrideTop.source || "system"}`}
                       >
                         {/* emoji only, no text */}
-                        <span style={{ fontSize: "1.05em" }}>{overrideTop.source === "draw" ? "🖊️" : overrideTop.source === "edit" ? "✏️" : "🔒"}</span>
+                        <span style={{ fontSize: "1.05em" }}>
+                          {overrideTop.source === "draw" ? "🖊️" : overrideTop.source === "edit" ? "✏️" : "🔒"}
+                        </span>
                       </div>
                     ) : null}
                   </div>
