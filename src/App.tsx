@@ -21,6 +21,7 @@ import { NotificationBell } from "./components/notifications/NotificationBell";
 import { NotificationPanel } from "./components/notifications/NotificationPanel";
 import { ToastContainer } from "./components/notifications/ToastContainer";
 import { useProject } from "./contexts/ProjectContext";
+import { isTauri } from "./platform";
 import { HistoryButton } from "./components/ui/HistoryButton";
 
 function App() {
@@ -328,15 +329,21 @@ function App() {
                       display: "flex",
                       alignItems: "center",
                       gap: "8px",
-                      opacity: hasSavedPath ? 1 : 0.5,
-                      pointerEvents: hasSavedPath ? "auto" : "none",
+                      opacity: hasSavedPath && isTauri() ? 1 : 0.5,
+                      pointerEvents: hasSavedPath && isTauri() ? "auto" : "none",
                     }}
-                    title={hasSavedPath ? "Toggle Auto Save" : "Save project first to enable Auto Save"}
+                    title={
+                      !hasSavedPath
+                        ? "Save project first to enable Auto Save"
+                        : !isTauri()
+                          ? "Auto-save is disabled on the web"
+                          : "Toggle Auto Save"
+                    }
                   >
                     <button
                       className={`autosave-switch ${autoSaveEnabled ? "active" : ""}`}
                       onClick={toggleAutoSave}
-                      disabled={!hasSavedPath}
+                      disabled={!hasSavedPath || !isTauri()}
                     >
                       <span className="autosave-switch-handle">{autoSaveEnabled ? "A" : "M"}</span>
                     </button>

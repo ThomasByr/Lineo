@@ -125,6 +125,14 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const [hasSavedPath, setHasSavedPath] = useState(false);
   const [projectName, setProjectName] = useState<string | null>(null);
 
+  // Ensure auto-save is always disabled on web builds (no desktop save backend).
+  // This prevents the UI from showing it as enabled while it would do nothing.
+  useEffect(() => {
+    if (!isTauri()) {
+      setAutoSaveEnabled(false);
+    }
+  }, []);
+
   const exportHandlerRef = useRef<((format: "png" | "jpg") => Promise<void>) | null>(null);
 
   // Store current file path for Save/Save As. This is not persisted on reload currently,
@@ -798,7 +806,11 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         startTransaction,
         commitTransaction,
         autoSaveEnabled,
-        toggleAutoSave: () => setAutoSaveEnabled((prev) => !prev),
+        toggleAutoSave: () => {
+          // Prevent toggling on web where autosave isn't supported
+          if (!isTauri()) return;
+          setAutoSaveEnabled((prev) => !prev);
+        },
         hasSavedPath,
         registerExportHandler,
         exportChart,
