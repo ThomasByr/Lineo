@@ -64,7 +64,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
   
   // The state being edited in the main window
   const [formSettings, setFormSettings] = useState<PlotSettings>(currentSettings);
-  const [isFormDirty, setIsFormDirty] = useState(false);
 
   // Import / Export State
   const [pendingImport, setPendingImport] = useState<PlotSettings | null>(null); // For single file import
@@ -126,7 +125,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     savePresetsToStorage(newPresets);
     setActivePresetId(newId);
     setFormSettings({ ...DEFAULT_PLOT_SETTINGS });
-    setIsFormDirty(false);
   };
 
   const handleDuplicatePreset = () => {
@@ -145,20 +143,19 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     savePresetsToStorage(newPresets);
     setActivePresetId(newId);
     setFormSettings({ ...activePreset.settings });
-    setIsFormDirty(false);
   };
 
-  const handleUpdateActivePreset = () => {
-    if (activePresetId === null) return;
-    const newPresets = presets.map(p => {
-        if (p.id === activePresetId) {
-            return { ...p, settings: { ...formSettings } };
-        }
-        return p;
-    });
-    savePresetsToStorage(newPresets);
-    setIsFormDirty(false);
-    addNotification("success", "Preset updated");
+  const handleSettingsChange = (newSettings: PlotSettings) => {
+    setFormSettings(newSettings);
+    if (activePresetId !== null) {
+        const newPresets = presets.map(p => {
+            if (p.id === activePresetId) {
+                return { ...p, settings: { ...newSettings } };
+            }
+            return p;
+        });
+        savePresetsToStorage(newPresets);
+    }
   };
 
   const handleDeletePreset = (id: number, e: Event) => {
@@ -220,7 +217,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
             // Also update local form to match, to visualize the change
             setFormSettings({ ...preset.settings });
             setActivePresetId(id);
-            setIsFormDirty(false);
             addNotification("success", "Default preset applied to current plot.");
           }
       }
@@ -229,7 +225,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
   const handleSelectPreset = (preset: Preset) => {
       setActivePresetId(preset.id);
       setFormSettings({ ...preset.settings });
-      setIsFormDirty(false);
   };
 
   // --- Export Logic ---
@@ -403,7 +398,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           });
           savePresetsToStorage(newPresets);
           setFormSettings({ ...pendingImport });
-          setIsFormDirty(false);
       } else {
           const newId = Date.now();
           const newPreset = {
@@ -415,7 +409,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           savePresetsToStorage([...presets, newPreset]);
           setActivePresetId(newId);
           setFormSettings({ ...pendingImport });
-          setIsFormDirty(false);
       }
       setPendingImport(null);
   };
@@ -535,39 +528,25 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
               <>
               <div className="preview-toolbar" style={{ flexDirection: 'column', height: 'auto', gap: '8px', alignItems: 'stretch' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>
-                          {activePresetId ? "Editing Preset" : "Format Settings"}
-                          {isFormDirty && activePresetId && " (Modified)"}
+                      <span style={{ fontWeight: 500 }}>
+                          Editing: <span style={{ fontWeight: 'bold' }}>{presets.find(p => p.id === activePresetId)?.name}</span>
                       </span>
-                      {activePresetId && (
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                  </div>
+                  
+                  {activePresetId && (
+                      <div style={{ display: 'flex', gap: '10px' }}>
                             <button 
                                 className="small-btn" 
                                 onClick={() => {
-                                    setFormSettings({ ...DEFAULT_PLOT_SETTINGS }); 
-                                    setIsFormDirty(true);
+                                    handleSettingsChange({ ...DEFAULT_PLOT_SETTINGS }); 
                                 }}
                             >
                                 Reset to Defaults
                             </button>
-                            <button 
-                                className="primary-button small" 
-                                disabled={!isFormDirty}
-                                onClick={handleUpdateActivePreset}
-                            >
-                                Save Changes
-                            </button>
-                        </div>
-                      )}
-                  </div>
-                  
-                  {activePresetId && (
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                         <button 
                             className="small-btn"
                             onClick={() => {
-                                setFormSettings({ ...currentSettings });
-                                setIsFormDirty(true);
+                                handleSettingsChange({ ...currentSettings });
                                 addNotification("info", "Loaded settings from current plot.");
                             }}
                             title="Overwrite this preset with settings from the main window"
@@ -589,10 +568,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
               <div className="settings-scroll-area">
                 <PlotSettingsForm 
                     plotSettings={formSettings}
-                    setPlotSettings={(s) => {
-                        setFormSettings(s);
-                        setIsFormDirty(true);
-                    }}
+                    setPlotSettings={handleSettingsChange}
                     viewMode="auto" // Mock
                     isModal={true}
                 />
