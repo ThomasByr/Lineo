@@ -35,6 +35,8 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
   const [presets, setPresets] = useState<Preset[]>([]);
   const [activePresetId, setActivePresetId] = useState<number | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [deleteAllStep, setDeleteAllStep] = useState(0); // 0: none, 1: confirm, 2: double confirm
+
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameName, setRenameName] = useState("");
   
@@ -152,6 +154,23 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     setPendingDeleteId(null);
     addNotification("success", "Preset deleted");
   };
+
+  const handleInitDeleteAll = () => {
+      if (presets.length === 0) return;
+      setDeleteAllStep(1);
+  };
+
+  const handleConfirmDeleteAll = () => {
+      if (deleteAllStep === 1) {
+          setDeleteAllStep(2);
+      } else if (deleteAllStep === 2) {
+          savePresetsToStorage([]);
+          setActivePresetId(null);
+          setDeleteAllStep(0);
+          addNotification("success", "All presets deleted.");
+      }
+  };
+
 
   const handleRenamePreset = (id: number, newName: string) => {
     const newPresets = presets.map(p => {
@@ -406,6 +425,15 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           <div className="presets-sidebar">
             <div className="presets-header-row">
                 <span>Presets</span>
+                {presets.length > 0 && (
+                    <button 
+                        className="text-button small danger-text" 
+                        onClick={handleInitDeleteAll}
+                        style={{ fontSize: '0.8em', padding: '2px 5px', color: '#e53935' }}
+                    >
+                        Delete All
+                    </button>
+                )}
             </div>
             <div className="presets-list" onClick={() => setActivePresetId(null)}>
               {presets.map((preset) => (
@@ -666,6 +694,35 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                         <button 
                             className="text-button" 
                             onClick={() => setPendingDeleteId(null)}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* --- Delete All Confirmation Overlay --- */}
+        {deleteAllStep > 0 && (
+            <div className="import-overlay">
+                <div className="import-dialog">
+                    <h3>Delete All Presets</h3>
+                    {deleteAllStep === 1 ? (
+                        <p>Are you sure you want to delete ALL presets? This action cannot be undone.</p>
+                    ) : (
+                        <p style={{ fontWeight: 'bold', color: '#e53935' }}>Are you really sure? This will wipe your entire preset library.</p>
+                    )}
+                    <div className="import-actions">
+                        <button 
+                            className="primary-button" 
+                            style={{ backgroundColor: "#e53935", color: "white" }}
+                            onClick={handleConfirmDeleteAll}
+                        >
+                            {deleteAllStep === 1 ? "Yes, Delete All" : "I Understand, Delete Everything"}
+                        </button>
+                        <button 
+                            className="text-button" 
+                            onClick={() => setDeleteAllStep(0)}
                         >
                             Cancel
                         </button>
