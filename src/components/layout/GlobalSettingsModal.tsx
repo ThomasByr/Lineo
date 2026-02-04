@@ -119,7 +119,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     const startupIdRaw = localStorage.getItem(STARTUP_KEY);
-    const startupId = startupIdRaw ? parseInt(startupIdRaw) : null;
+    const startupId = startupIdRaw ? Number(startupIdRaw) : null;
 
     if (stored) {
       try {

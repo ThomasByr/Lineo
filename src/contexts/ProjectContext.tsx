@@ -91,7 +91,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
       const stored = localStorage.getItem("lineo_global_presets");
       if (startupId && stored) {
         const presets = JSON.parse(stored);
-        const id = parseInt(startupId);
+        const id = Number(startupId);
         const preset = presets.find((p: any) => p.id === id);
         if (preset && preset.settings) {
           // Merge with defaults in case of new properties
