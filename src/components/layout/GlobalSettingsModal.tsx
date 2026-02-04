@@ -7,6 +7,7 @@ import "./GlobalSettingsModal.css";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { isTauri } from "../../platform";
 import { invoke } from "@tauri-apps/api/core";
+import { useNotification } from "../../contexts/NotificationContext";
 
 // --- Types ---
 
@@ -44,15 +45,22 @@ function CompactSwitch({ checked, onChange, title }: { checked: boolean, onChang
 // --- Component ---
 
 export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings }: GlobalSettingsModalProps) {
+  const { addNotification } = useNotification();
   const [presets, setPresets] = useState<Preset[]>([]);
   const [activePresetId, setActivePresetId] = useState<number | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   
   // The state being edited in the main window
   const [formSettings, setFormSettings] = useState<PlotSettings>(currentSettings);
   const [isFormDirty, setIsFormDirty] = useState(false);
 
-  // Import State
-  const [pendingImport, setPendingImport] = useState<PlotSettings | null>(null);
+  // Import / Export State
+  const [pendingImport, setPendingImport] = useState<PlotSettings | null>(null); // For single file import
+  const [importCandidates, setImportCandidates] = useState<Preset[] | null>(null); // For multi file import
+  const [importSelection, setImportSelection] = useState<Set<number>>(new Set());
+  
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportSelection, setExportSelection] = useState<Set<number>>(new Set());
 
   // Load Presets
   useEffect(() => {
@@ -63,9 +71,8 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        // Normalize old format if necessary (where nulls existed)
         const validPresets: Preset[] = parsed
-            .filter((p: any) => p.settings !== null) // Filter out empty slots from old version
+            .filter((p: any) => p.settings !== null) 
             .map((p: any) => ({
                 id: p.id,
                 name: p.name,
@@ -79,7 +86,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     }
   }, []);
 
-  // Sync Presets to Storage
+  // Sync Presets
   const savePresetsToStorage = (newPresets: Preset[]) => {
     setPresets(newPresets);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newPresets));
@@ -105,8 +112,8 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     };
     const newPresets = [...presets, newPreset];
     savePresetsToStorage(newPresets);
-    setActivePresetId(newId); // Select the new one
-    setIsFormDirty(false); // Since it matches the form
+    setActivePresetId(newId);
+    setIsFormDirty(false);
   };
 
   const handleUpdateActivePreset = () => {
@@ -119,17 +126,26 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     });
     savePresetsToStorage(newPresets);
     setIsFormDirty(false);
+    addNotification("success", "Preset updated");
   };
 
   const handleDeletePreset = (id: number, e: Event) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this preset?")) {
-        const newPresets = presets.filter(p => p.id !== id);
-        savePresetsToStorage(newPresets);
-        if (activePresetId === id) {
-            setActivePresetId(null);
-        }
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (pendingDeleteId === null) return;
+    
+    const newPresets = presets.filter(p => p.id !== pendingDeleteId);
+    savePresetsToStorage(newPresets);
+    
+    if (activePresetId === pendingDeleteId) {
+        setActivePresetId(null);
     }
+    
+    setPendingDeleteId(null);
+    addNotification("success", "Preset deleted");
   };
 
   const handleRenamePreset = (id: number, newName: string) => {
@@ -149,94 +165,171 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
   };
 
   const handleSelectPreset = (preset: Preset) => {
-      // If dirty, maybe warn? For now just switch.
       setActivePresetId(preset.id);
       setFormSettings({ ...preset.settings });
       setIsFormDirty(false);
   };
 
-  // --- Export / Import ---
+  // --- Export Logic ---
 
-  const handleExport = async () => {
-      if (!isTauri()) {
-        alert("Export is only available in the desktop app.");
-        return;
+  const openExportModal = () => {
+      // Select all by default
+      const allIds = new Set(presets.map(p => p.id));
+      setExportSelection(allIds);
+      setShowExportModal(true);
+  };
+
+  const toggleExportSelection = (id: number) => {
+      const newSet = new Set(exportSelection);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      setExportSelection(newSet);
+  };
+
+  const handleExportConfirm = async () => {
+      const presetsToExport = presets.filter(p => exportSelection.has(p.id));
+      if (presetsToExport.length === 0) {
+          addNotification("warning", "No presets selected to export.");
+          return;
       }
 
-      try {
-        const content = JSON.stringify(presets, null, 2);
-        const path = await save({
-            filters: [{ name: "Lineo Presets", extensions: ["json"] }],
-            defaultPath: "lineo_presets.json"
-        });
+      const content = JSON.stringify(presetsToExport, null, 2);
 
-        if (path) {
-            await invoke("save_text_file", { path, contents: content });
-            alert("Presets exported successfully!");
+      if (isTauri()) {
+        try {
+            const path = await save({
+                filters: [{ name: "Lineo Presets", extensions: ["json"] }],
+                defaultPath: "lineo_presets.json"
+            });
+
+            if (path) {
+                await invoke("save_text_file", { path, content });
+                addNotification("success", `${presetsToExport.length} presets exported successfully!`);
+                setShowExportModal(false);
+            }
+        } catch (e) {
+            console.error(e);
+            addNotification("error", "Failed to export presets.");
+        }
+      } else {
+        // Browser Export
+        try {
+            const blob = new Blob([content], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "lineo_presets.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addNotification("success", `${presetsToExport.length} presets exported successfully!`);
+            setShowExportModal(false);
+        } catch (e) {
+             console.error(e);
+             addNotification("error", "Failed to export presets.");
+        }
+      }
+  };
+
+  // --- Import Logic ---
+
+  const processImportedContent = (content: string) => {
+      try {
+        const data = JSON.parse(content);
+        
+        if (Array.isArray(data)) {
+            // It's a list check valid structure roughly
+            const candidates: Preset[] = data.map((p:any, idx: number) => ({
+                    id: p.id || idx,
+                    name: p.name || "Imported",
+                    settings: p.settings || p, 
+                    isStartup: false
+            })).filter(p => p.settings);
+            
+            if (candidates.length > 0) {
+                setImportCandidates(candidates);
+                // Select all by default
+                setImportSelection(new Set(candidates.map(p => p.id)));
+            } else {
+                addNotification("warning", "No valid presets found in file.");
+            }
+        } else {
+            // Single object
+            if (data.settings) {
+                setPendingImport(data.settings); 
+            } else {
+                setPendingImport(data); 
+            }
         }
       } catch (e) {
-          console.error(e);
-          alert("Failed to export presets.");
+         console.error(e);
+         addNotification("error", "Invalid JSON file.");
       }
   };
 
   const handleImportClick = async () => {
-    if (!isTauri()) return;
+    if (isTauri()) {
+        try {
+            const path = await open({
+                filters: [{ name: "Lineo Presets", extensions: ["json"] }],
+                multiple: false
+            });
 
-    try {
-        const path = await open({
-            filters: [{ name: "Lineo Presets", extensions: ["json"] }],
-            multiple: false
-        });
-
-        if (path && typeof path === 'string') {
-            const content = await invoke("read_text_file_custom", { path });
-            if (typeof content === 'string') {
-                const data = JSON.parse(content);
-                // We assume the user creates a "Preset Export", which is an array of Presets.
-                // Or maybe they export a single settings file (from the old version?).
-                // Let's assume it's an array of presets for now, or a single PlotSettings object if we want to import settings.
-                
-                // Requirement check: "when importing... choose if I want to overwrite the current/selected id or add a new one"
-                // This implies we are importing *settings*, not necessarily a whole library of presets.
-                // But typically "Export" in this modal exports the list.
-                
-                // Let's handle both: If array -> Multiple import (maybe concat?). 
-                // If single object (PlotSettings) -> Import as single (trigger decision).
-                
-                if (Array.isArray(data)) {
-                    // It's a full backup. Confirm overwrite or append?
-                    if(confirm("This file contains multiple presets. Append them to your list?")) {
-                         // Assign new IDs to avoid conflicts
-                         const toAdd = data.map((p:any) => ({
-                             id: Date.now() + Math.random(),
-                             name: p.name || "Imported",
-                             settings: p.settings || p, // Handle both structures if possible
-                             isStartup: false
-                         })).filter(p => p.settings); // valid only
-                         savePresetsToStorage([...presets, ...toAdd]);
-                         alert(`Imported ${toAdd.length} presets.`);
-                    }
-                } else {
-                    // It's a single object, likely settings.
-                    // Or maybe the user exported "Presets" and got the array.
-                    // If the user wants to import *into* a slot, they probably mean importing a config file.
-                    // Let's treat the data as "Settings" to be applied to a slot.
-                    if (data.settings) {
-                         setPendingImport(data.settings); // It was a Preset object
-                    } else {
-                         setPendingImport(data); // It was raw settings
-                    }
+            if (path && typeof path === 'string') {
+                const content = await invoke("read_text_file_custom", { path });
+                if (typeof content === 'string') {
+                    processImportedContent(content);
                 }
             }
+        } catch (e) {
+            console.error(e);
+            addNotification("error", "Failed to import.");
         }
-    } catch (e) {
-        console.error(e);
-        alert("Failed to import.");
+    } else {
+        // Browser Import
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e: any) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                 if (evt.target?.result) {
+                     processImportedContent(evt.target.result as string);
+                 }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
     }
   };
 
-  const finalizeImport = (action: 'overwrite' | 'new') => {
+  const toggleImportSelection = (id: number) => {
+      const newSet = new Set(importSelection);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      setImportSelection(newSet);
+  };
+
+  const confirmMultiImport = () => {
+      if (!importCandidates) return;
+      const toAdd = importCandidates.filter(p => importSelection.has(p.id));
+      
+      const newPresets = toAdd.map(p => ({
+          ...p,
+          id: Date.now() + Math.random(), // Regenerate IDs to avoid collisions
+          isStartup: false
+      }));
+
+      savePresetsToStorage([...presets, ...newPresets]);
+      addNotification("success", `Imported ${newPresets.length} presets.`);
+      setImportCandidates(null);
+  };
+
+  const finalizeSingleImport = (action: 'overwrite' | 'new') => {
       if (!pendingImport) return;
 
       if (action === 'overwrite' && activePresetId) {
@@ -250,7 +343,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           setFormSettings({ ...pendingImport });
           setIsFormDirty(false);
       } else {
-          // New
           const newId = Date.now();
           const newPreset = {
               id: newId,
@@ -274,8 +366,8 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
         <div className="modal-header">
           <h2>Global Settings</h2>
           <div className="header-actions">
-             <button className="secondary-button" onClick={handleExport}>Export All</button>
-             <button className="secondary-button" onClick={handleImportClick}>Import...</button>
+             <button onClick={openExportModal}>Export...</button>
+             <button onClick={handleImportClick}>Import...</button>
              <button className="close-button" onClick={onClose} style={{ marginLeft: '10px' }}>&times;</button>
           </div>
         </div>
@@ -343,7 +435,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                             Save Changes
                         </button>
                     )}
-                    <button className="secondary-button small" onClick={() => onApplySettings(formSettings)}>
+                    <button className="small" onClick={() => onApplySettings(formSettings)}>
                         Apply to Current Plot
                     </button>
                   </div>
@@ -362,7 +454,71 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           </div>
         </div>
 
-        {/* Import Decision Overlay */}
+        {/* --- Export Modal --- */}
+        {showExportModal && (
+            <div className="import-overlay">
+                <div className="import-dialog wide-dialog">
+                    <h3>Export Presets</h3>
+                    <p>Select which presets to include in the export file.</p>
+                    
+                    <div className="selection-list">
+                        <div className="selection-header">
+                            <button className="text-button small" onClick={() => setExportSelection(new Set(presets.map(p => p.id)))}>Select All</button>
+                            <button className="text-button small" onClick={() => setExportSelection(new Set())}>Select None</button>
+                        </div>
+                        {presets.map(p => (
+                            <label key={p.id} className="selection-item">
+                                <input 
+                                    type="checkbox" 
+                                    checked={exportSelection.has(p.id)} 
+                                    onChange={() => toggleExportSelection(p.id)}
+                                />
+                                <span className="selection-name">{p.name}</span>
+                            </label>
+                        ))}
+                    </div>
+
+                    <div className="import-actions row">
+                        <button className="text-button" onClick={() => setShowExportModal(false)}>Cancel</button>
+                        <button className="primary-button" onClick={handleExportConfirm}>Export Selection</button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* --- Import Multi Modal --- */}
+        {importCandidates && (
+            <div className="import-overlay">
+                <div className="import-dialog wide-dialog">
+                    <h3>Import Presets</h3>
+                    <p>Select which presets to add to your library.</p>
+                    
+                    <div className="selection-list">
+                         <div className="selection-header">
+                            <button className="text-button small" onClick={() => setImportSelection(new Set(importCandidates.map(p => p.id)))}>Select All</button>
+                            <button className="text-button small" onClick={() => setImportSelection(new Set())}>Select None</button>
+                        </div>
+                        {importCandidates.map(p => (
+                            <label key={p.id} className="selection-item">
+                                <input 
+                                    type="checkbox" 
+                                    checked={importSelection.has(p.id)} 
+                                    onChange={() => toggleImportSelection(p.id)}
+                                />
+                                <span className="selection-name">{p.name}</span>
+                            </label>
+                        ))}
+                    </div>
+
+                    <div className="import-actions row">
+                        <button className="text-button" onClick={() => setImportCandidates(null)}>Cancel</button>
+                        <button className="primary-button" onClick={confirmMultiImport}>Import Selected</button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* --- Single Import Decision Overlay --- */}
         {pendingImport && (
             <div className="import-overlay">
                 <div className="import-dialog">
@@ -372,20 +528,45 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                         <button 
                             className="secondary-button" 
                             disabled={!activePresetId}
-                            onClick={() => finalizeImport('overwrite')}
+                            onClick={() => finalizeSingleImport('overwrite')}
                             title={!activePresetId ? "Select a preset first" : ""}
                         >
                             Overwrite Selected
                         </button>
                         <button 
                             className="primary-button" 
-                            onClick={() => finalizeImport('new')}
+                            onClick={() => finalizeSingleImport('new')}
                         >
                             Create New Preset
                         </button>
                         <button 
                             className="text-button" 
                             onClick={() => setPendingImport(null)}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* --- Delete Confirmation Overlay --- */}
+        {pendingDeleteId !== null && (
+            <div className="import-overlay">
+                <div className="import-dialog">
+                    <h3>Delete Preset</h3>
+                    <p>Are you sure you want to delete this preset? This action cannot be undone.</p>
+                    <div className="import-actions">
+                        <button 
+                            className="primary-button" 
+                            style={{ backgroundColor: "#e53935", color: "white" }}
+                            onClick={confirmDelete}
+                        >
+                            Delete
+                        </button>
+                        <button 
+                            className="text-button" 
+                            onClick={() => setPendingDeleteId(null)}
                         >
                             Cancel
                         </button>

@@ -258,3 +258,68 @@ input:checked + .slider:before {
     gap: 10px;
     margin-top: 20px;
 }
+
+/* --- Import/Export Selection Styles --- */
+
+.wide-dialog {
+    width: 600px;
+    max-width: 90vw;
+}
+
+.selection-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--point-border-color);
+    border-radius: 4px;
+    margin: 15px 0;
+    padding: 10px;
+    background: var(--bg-color-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.selection-header {
+    display: flex;
+    gap: 15px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--point-border-color);
+}
+
+.selection-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.selection-item:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.selection-name {
+    font-size: 0.95em;
+    user-select: none;
+}
+
+.import-actions.row {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Ensure secondary buttons in modal headers are visible */
+.secondary-button {
+    background: transparent;
+    border: 1px solid var(--point-border-color);
+    color: var(--text-color);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.secondary-button:hover {
+    background: rgba(0,0,0,0.05);
+}
