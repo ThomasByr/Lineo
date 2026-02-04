@@ -297,7 +297,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                     id: p.id || idx,
                     name: p.name || "Imported",
                     settings: p.settings || p, 
-                    isStartup: false
+                    isStartup: !!p.isStartup
             })).filter(p => p.settings);
             
             if (candidates.length > 0) {
@@ -369,12 +369,27 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
   const confirmMultiImport = () => {
       if (!importCandidates) return;
       const toAdd = importCandidates.filter(p => importSelection.has(p.id));
+
+      const hasExistingStartup = presets.some(p => p.isStartup);
+      let newStartupClaimed = false;
       
-      const newPresets = toAdd.map(p => ({
-          ...p,
-          id: Date.now() + Math.random(), // Regenerate IDs to avoid collisions
-          isStartup: false
-      }));
+      const newPresets = toAdd.map(p => {
+          // Only allow importing as startup if:
+          // 1. No existing startup preset exists in current list
+          // 2. The imported preset claims startup
+          // 3. We haven't already allowed another imported preset to be startup in this batch
+          const shouldBeStartup = !hasExistingStartup && p.isStartup && !newStartupClaimed;
+          
+          if (shouldBeStartup) {
+              newStartupClaimed = true;
+          }
+
+          return {
+            ...p,
+            id: Date.now() + Math.random(), // Regenerate IDs to avoid collisions
+            isStartup: shouldBeStartup
+          };
+      });
 
       savePresetsToStorage([...presets, ...newPresets]);
       addNotification("success", `Imported ${newPresets.length} presets.`);
