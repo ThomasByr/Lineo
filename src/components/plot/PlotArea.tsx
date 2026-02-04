@@ -65,7 +65,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
   commitTransaction,
 }, ref) => {
   const { addNotification } = useNotification();
-  const { registerExportHandler } = useProject();
+  const { registerExportHandler, lockedView } = useProject();
   const chartRef = useRef<ChartJS>(null);
 
   useImperativeHandle(ref, () => ({
@@ -780,7 +780,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
       viewScalesRef.current = current;
       forceUpdate((n) => n + 1);
     }
-  }, [plotSettings?.xMin, plotSettings?.xMax, plotSettings?.yMin, plotSettings?.yMax, viewMode]);
+  }, []); // Logic for syncing viewScalesRef was causing side effects. Removed dependency on settings.
 
   const updateViewScales = ({ chart }: { chart: ChartJS }) => {
     const { x, y } = chart.scales;
@@ -792,14 +792,32 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
     onViewChange?.(newView);
   };
 
+  const getMinMax = (axis: 'x' | 'y') => {
+      if (viewMode === "locked" && lockedView) {
+          return {
+              min: axis === 'x' ? lockedView.xMin : lockedView.yMin,
+              max: axis === 'x' ? lockedView.xMax : lockedView.yMax,
+          };
+      } else if (viewMode === "manual" && plotSettings) {
+          return {
+              min: axis === 'x' ? plotSettings.xMin : plotSettings.yMin,
+              max: axis === 'x' ? plotSettings.xMax : plotSettings.yMax,
+          };
+      }
+      return { min: undefined, max: undefined };
+  };
+
+  const xScales = getMinMax('x');
+  const yScales = getMinMax('y');
+
   const options: any = {
     maintainAspectRatio: false,
     scales: {
       x: {
         type: "linear" as const,
         position: "bottom" as const,
-        min: viewMode !== "auto" && viewScalesRef.current ? viewScalesRef.current.x.min : undefined,
-        max: viewMode !== "auto" && viewScalesRef.current ? viewScalesRef.current.x.max : undefined,
+        min: xScales.min,
+        max: xScales.max,
         title: {
           display: !!plotSettings?.xLabel,
           text: plotSettings?.xLabel,
@@ -823,8 +841,10 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
         },
       },
       y: {
-        min: viewMode !== "auto" && viewScalesRef.current ? viewScalesRef.current.y.min : undefined,
-        max: viewMode !== "auto" && viewScalesRef.current ? viewScalesRef.current.y.max : undefined,
+        type: "linear" as const,
+        position: "left" as const,
+        min: yScales.min,
+        max: yScales.max,
         title: {
           display: !!plotSettings?.yLabel,
           text: plotSettings?.yLabel,

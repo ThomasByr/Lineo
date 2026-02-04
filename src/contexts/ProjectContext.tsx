@@ -73,6 +73,9 @@ interface ProjectContextType {
   setIsExportModalOpen: (isOpen: boolean) => void;
 
   projectName: string | null;
+
+  lockedView: { xMin?: number; xMax?: number; yMin?: number; yMax?: number } | null;
+  setLockedView: (view: { xMin?: number; xMax?: number; yMin?: number; yMax?: number } | null) => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -116,6 +119,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [hasSavedPath, setHasSavedPath] = useState(false);
   const [projectName, setProjectName] = useState<string | null>(null);
+
+  const [lockedView, setLockedView] = useState<{ xMin?: number; xMax?: number; yMin?: number; yMax?: number } | null>(null);
 
   // Ensure auto-save is always disabled on web builds (no desktop save backend).
   // This prevents the UI from showing it as enabled while it would do nothing.
@@ -826,6 +831,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         isExportModalOpen,
         setIsExportModalOpen,
         projectName,
+        lockedView,
+        setLockedView,
       }}
     >
       {children}

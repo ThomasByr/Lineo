@@ -54,6 +54,7 @@ function App() {
     popViewModeOverride,
     overrideActive,
     overrideTop,
+    setLockedView,
   } = useProject();
 
   const plotAreaRef = useRef<PlotAreaHandle>(null);
@@ -464,17 +465,26 @@ function App() {
                       className={`view-mode-option ${viewMode === "locked" ? "active" : ""}`}
                       onClick={() => {
                         if (viewMode === "auto" && plotAreaRef.current) {
-                          // Capture current auto-view and freeze it into settings
+                          // Capture current auto-view and freeze it into locked view state
                           const currentView = plotAreaRef.current.getCurrentView();
                           if (currentView) {
-                            updatePlotSettings({
+                            setLockedView({
                               xMin: currentView.x.min,
                               xMax: currentView.x.max,
                               yMin: currentView.y.min,
                               yMax: currentView.y.max,
-                            }, true); // skipHistory to treat this as part of the mode switch
+                            });
                           }
+                        } else if (viewMode === "manual") {
+                           // If coming from manual, "Lock" means lock current manual view
+                           setLockedView({
+                              xMin: plotSettings.xMin,
+                              xMax: plotSettings.xMax,
+                              yMin: plotSettings.yMin,
+                              yMax: plotSettings.yMax,
+                           });
                         }
+                        
                         setViewMode("locked");
                       }}
                       title="Lock view to draw/edit"
