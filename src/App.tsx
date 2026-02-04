@@ -546,6 +546,7 @@ function App() {
                     viewMode={viewMode}
                     startTransaction={startTransaction}
                     commitTransaction={commitTransaction}
+                    onOpenGlobalSettings={() => setShowGlobalSettings(true)}
                   />
                 )}
               </div>
