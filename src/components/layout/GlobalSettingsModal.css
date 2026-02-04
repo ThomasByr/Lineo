@@ -376,3 +376,8 @@ input:checked + .slider:before {
 .secondary-button:hover {
     background: rgba(0,0,0,0.05);
 }
+
+.preset-item:focus-visible {
+  outline: 2px solid var(--primary-color, #396cd8);
+  outline-offset: -2px;
+}

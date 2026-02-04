@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useRef } from "preact/hooks";
 import { createPortal } from "preact/compat";
 import { PlotSettings } from "../../types";
 import { PlotSettingsForm } from "../tabs/PlotSettingsForm";
@@ -8,6 +8,28 @@ import { isTauri } from "../../platform";
 import { invoke } from "@tauri-apps/api/core";
 import { useNotification } from "../../contexts/NotificationContext";
 import { DEFAULT_PLOT_SETTINGS } from "../../constants";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
+
+// --- Helper Component for Focus Trap in Sub-Modals ---
+function DialogFocusTrap({ className, children }: { className?: string; children: any }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useFocusTrap(ref, true);
+
+  useEffect(() => {
+    setTimeout(() => {
+        const first = ref.current?.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        first?.focus();
+    }, 50);
+  }, []);
+
+  return (
+      <div className={className} ref={ref}>
+          {children}
+      </div>
+  );
+}
 
 // --- Types ---
 
@@ -50,6 +72,48 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
   
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportSelection, setExportSelection] = useState<Set<number>>(new Set());
+
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap
+  // Disable outer trap when a sub-modal is open, so the sub-modal's trap can take over
+  const isSubModalOpen = showExportModal || !!importCandidates || !!pendingImport || pendingDeleteId !== null || deleteAllStep > 0;
+  useFocusTrap(modalRef, !isSubModalOpen);
+
+  // Initial focus and Escape key
+  useEffect(() => {
+    // Focus first interactive element
+    setTimeout(() => {
+        const first = modalRef.current?.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        first?.focus();
+    }, 0);
+
+    const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+            // Only close if no sub-modals are open
+            if (!showExportModal && !pendingImport && pendingDeleteId === null && activePresetId !== null && renamingId === null) {
+                 // Maybe just deselect if selected?
+                 // Or actually close the modal? 
+                 // User request: "escape ... like for the other modals" -> usually closes the modal
+                 onClose();
+            } else if (renamingId !== null) {
+                cancelRename();
+            } else if (showExportModal) {
+                setShowExportModal(false);
+            } else if (pendingImport) {
+                setPendingImport(null);
+            } else if (pendingDeleteId !== null) {
+                setPendingDeleteId(null);
+            } else {
+                onClose();
+            }
+        }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showExportModal, pendingImport, pendingDeleteId, activePresetId, renamingId, onClose]);
 
   // Load Presets
   useEffect(() => {
@@ -427,7 +491,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     <div className="global-settings-modal-overlay" onClick={(e) => {
         if(e.target === e.currentTarget) onClose();
     }}>
-      <div className="global-settings-modal">
+      <div className="global-settings-modal" ref={modalRef}>
         <div className="modal-header">
           <h2>Global Settings</h2>
           <div className="header-actions">
@@ -456,6 +520,16 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                   key={preset.id} 
                   className={`preset-item ${activePresetId === preset.id ? "active" : ""}`}
                   onClick={(e) => { e.stopPropagation(); handleSelectPreset(preset); }}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation(); 
+                          handleSelectPreset(preset);
+                      }
+                  }}
+                  role="button"
+                  aria-pressed={activePresetId === preset.id}
                 >
                   <div className="preset-drag-handle" style={{opacity: 0.3, marginRight: 5}}>⋮</div>
 
@@ -599,7 +673,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
         {/* --- Export Modal --- */}
         {showExportModal && (
             <div className="import-overlay">
-                <div className="import-dialog wide-dialog">
+                <DialogFocusTrap className="import-dialog wide-dialog">
                     <h3>Export Presets</h3>
                     <p>Select which presets to include in the export file.</p>
                     
@@ -624,14 +698,14 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                         <button className="text-button" onClick={() => setShowExportModal(false)}>Cancel</button>
                         <button className="primary-button" onClick={handleExportConfirm}>Export Selection</button>
                     </div>
-                </div>
+                </DialogFocusTrap>
             </div>
         )}
 
         {/* --- Import Multi Modal --- */}
         {importCandidates && (
             <div className="import-overlay">
-                <div className="import-dialog wide-dialog">
+                <DialogFocusTrap className="import-dialog wide-dialog">
                     <h3>Import Presets</h3>
                     <p>Select which presets to add to your library.</p>
                     
@@ -656,14 +730,14 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                         <button className="text-button" onClick={() => setImportCandidates(null)}>Cancel</button>
                         <button className="primary-button" onClick={confirmMultiImport}>Import Selected</button>
                     </div>
-                </div>
+                </DialogFocusTrap>
             </div>
         )}
 
         {/* --- Single Import Decision Overlay --- */}
         {pendingImport && (
             <div className="import-overlay">
-                <div className="import-dialog">
+                <DialogFocusTrap className="import-dialog">
                     <h3>Import Settings</h3>
                     <p>How would you like to import these settings?</p>
                     <div className="import-actions">
@@ -688,14 +762,14 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                             Cancel
                         </button>
                     </div>
-                </div>
+                </DialogFocusTrap>
             </div>
         )}
 
         {/* --- Delete Confirmation Overlay --- */}
         {pendingDeleteId !== null && (
             <div className="import-overlay">
-                <div className="import-dialog">
+                <DialogFocusTrap className="import-dialog">
                     <h3>Delete Preset</h3>
                     <p>Are you sure you want to delete this preset? This action cannot be undone.</p>
                     <div className="import-actions">
@@ -713,14 +787,14 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                             Cancel
                         </button>
                     </div>
-                </div>
+                </DialogFocusTrap>
             </div>
         )}
 
         {/* --- Delete All Confirmation Overlay --- */}
         {deleteAllStep > 0 && (
             <div className="import-overlay">
-                <div className="import-dialog">
+                <DialogFocusTrap className="import-dialog">
                     <h3>Delete All Presets</h3>
                     {deleteAllStep === 1 ? (
                         <p>Are you sure you want to delete ALL presets? This action cannot be undone.</p>
@@ -742,7 +816,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                             Cancel
                         </button>
                     </div>
-                </div>
+                </DialogFocusTrap>
             </div>
         )}
 
