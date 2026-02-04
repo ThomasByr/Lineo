@@ -123,7 +123,12 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const [hasSavedPath, setHasSavedPath] = useState(false);
   const [projectName, setProjectName] = useState<string | null>(null);
 
-  const [lockedView, setLockedView] = useState<{ xMin?: number; xMax?: number; yMin?: number; yMax?: number } | null>(null);
+  const [lockedView, setLockedView] = useState<{
+    xMin?: number;
+    xMax?: number;
+    yMin?: number;
+    yMax?: number;
+  } | null>(null);
 
   // Ensure auto-save is always disabled on web builds (no desktop save backend).
   // This prevents the UI from showing it as enabled while it would do nothing.

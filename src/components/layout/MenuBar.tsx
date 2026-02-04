@@ -12,14 +12,7 @@ interface MenuBarProps {
   setTheme: (t: "light" | "dark") => void;
 }
 
-export function MenuBar({
-  zoom,
-  setZoom,
-  onOpenAbout,
-  onOpenGlobalSettings,
-  theme,
-  setTheme,
-}: MenuBarProps) {
+export function MenuBar({ zoom, setZoom, onOpenAbout, onOpenGlobalSettings, theme, setTheme }: MenuBarProps) {
   const {
     saveProject,
     saveProjectAs,

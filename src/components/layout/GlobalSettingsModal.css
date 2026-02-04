@@ -41,9 +41,9 @@
 }
 
 .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .auth-modal-body {
@@ -63,14 +63,14 @@
 }
 
 .presets-header-row {
-    padding: 10px 15px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8em;
-    font-weight: bold;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--point-border-color);
-    background: rgba(0,0,0,0.01);
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  font-weight: bold;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--point-border-color);
+  background: rgba(0, 0, 0, 0.01);
 }
 
 .presets-list {
@@ -93,7 +93,7 @@
 
 .preset-item:hover {
   background-color: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0,0,0,0.05);
+  border-color: rgba(0, 0, 0, 0.05);
 }
 
 .preset-item.active {
@@ -102,128 +102,128 @@
 }
 
 .preset-content-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-    margin-right: 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin-right: 8px;
 }
 
 .preset-name-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
-    font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .preset-name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .default-badge {
-    background: #4caf50;
-    color: white;
-    font-size: 0.65em;
-    padding: 2px 5px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    font-weight: bold;
-    letter-spacing: 0.5px;
+  background: #4caf50;
+  color: white;
+  font-size: 0.65em;
+  padding: 2px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.5px;
 }
 
 .preset-actions-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
 }
 
 /* Cleanup: removed text-action-btn and separator styles as we now use standard buttons */
 
 .rename-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
 }
 
 .rename-input {
-    flex: 1;
-    padding: 4px 6px;
-    font-size: 0.9em;
-    border: 1px solid #396cd8;
-    border-radius: 3px;
-    outline: none;
-    min-width: 0;
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 0.9em;
+  border: 1px solid #396cd8;
+  border-radius: 3px;
+  outline: none;
+  min-width: 0;
 }
 
 .preset-actions-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .delete-btn {
-    opacity: 0;
-    font-size: 1.2rem;
-    color: #e53935;
-    padding: 0 4px;
-    transition: opacity 0.2s;
+  opacity: 0;
+  font-size: 1.2rem;
+  color: #e53935;
+  padding: 0 4px;
+  transition: opacity 0.2s;
 }
 
 .preset-item:hover .delete-btn {
-    opacity: 0.6;
+  opacity: 0.6;
 }
 
 .preset-item:hover .delete-btn:hover {
-    opacity: 1;
+  opacity: 1;
 }
 
 .sidebar-footer {
-    padding: 10px;
-    border-top: 1px solid var(--point-border-color);
-    background: var(--bg-color);
+  padding: 10px;
+  border-top: 1px solid var(--point-border-color);
+  background: var(--bg-color);
 }
 
 .empty-state {
-    padding: 20px;
-    text-align: center;
-    color: var(--text-secondary);
-    font-style: italic;
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 /* Settings Area */
 
 .settings-preview-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    background: var(--bg-color);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg-color);
 }
 
 .preview-toolbar {
-    padding: 10px 20px;
-    border-bottom: 1px solid var(--point-border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(0,0,0,0.01);
-    font-weight: 500;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--point-border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.01);
+  font-weight: 500;
 }
 
 .settings-scroll-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
 }
 
 .modal-settings-container {
-    padding: 0 10px 20px 10px;
+  padding: 0 10px 20px 10px;
 }
 
 /* Compact Switch */
@@ -249,7 +249,7 @@
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 34px;
 }
 
@@ -261,7 +261,7 @@
   left: 2px;
   bottom: 2px;
   background-color: white;
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 50%;
 }
 
@@ -277,104 +277,103 @@ input:checked + .slider:before {
   transform: translateX(14px);
 }
 
-
 /* Import Overlay */
 .import-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
 }
 
 .import-dialog {
-    background: var(--bg-color);
-    padding: 25px;
-    border-radius: 8px;
-    width: 400px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-    text-align: center;
+  background: var(--bg-color);
+  padding: 25px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }
 
 .import-dialog h3 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .import-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 /* --- Import/Export Selection Styles --- */
 
 .wide-dialog {
-    width: 600px;
-    max-width: 90vw;
+  width: 600px;
+  max-width: 90vw;
 }
 
 .selection-list {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid var(--point-border-color);
-    border-radius: 4px;
-    margin: 15px 0;
-    padding: 10px;
-    background: var(--bg-color-secondary);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--point-border-color);
+  border-radius: 4px;
+  margin: 15px 0;
+  padding: 10px;
+  background: var(--bg-color-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .selection-header {
-    display: flex;
-    gap: 15px;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid var(--point-border-color);
+  display: flex;
+  gap: 15px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--point-border-color);
 }
 
 .selection-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
 }
 
 .selection-item:hover {
-    background-color: rgba(0,0,0,0.05);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .selection-name {
-    font-size: 0.95em;
-    user-select: none;
+  font-size: 0.95em;
+  user-select: none;
 }
 
 .import-actions.row {
-    flex-direction: row;
-    justify-content: flex-end;
-    gap: 10px;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 /* Ensure secondary buttons in modal headers are visible */
 .secondary-button {
-    background: transparent;
-    border: 1px solid var(--point-border-color);
-    color: var(--text-color);
-    padding: 4px 10px;
-    border-radius: 4px;
-    cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--point-border-color);
+  color: var(--text-color);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 .secondary-button:hover {
-    background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .preset-item:focus-visible {

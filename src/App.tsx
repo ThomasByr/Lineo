@@ -95,12 +95,12 @@ function App() {
         // Capture specific current view for lock
         const currentView = plotAreaRef.current?.getCurrentView();
         if (currentView) {
-            setLockedView({
-                xMin: currentView.x.min,
-                xMax: currentView.x.max,
-                yMin: currentView.y.min,
-                yMax: currentView.y.max
-            });
+          setLockedView({
+            xMin: currentView.x.min,
+            xMax: currentView.x.max,
+            yMin: currentView.y.min,
+            yMax: currentView.y.max,
+          });
         }
         pushViewModeOverride("locked", "edit");
         editingOverridePushed.current = true;
@@ -486,15 +486,15 @@ function App() {
                             });
                           }
                         } else if (viewMode === "manual") {
-                           // If coming from manual, "Lock" means lock current manual view
-                           setLockedView({
-                              xMin: plotSettings.xMin,
-                              xMax: plotSettings.xMax,
-                              yMin: plotSettings.yMin,
-                              yMax: plotSettings.yMax,
-                           });
+                          // If coming from manual, "Lock" means lock current manual view
+                          setLockedView({
+                            xMin: plotSettings.xMin,
+                            xMax: plotSettings.xMax,
+                            yMin: plotSettings.yMin,
+                            yMax: plotSettings.yMax,
+                          });
                         }
-                        
+
                         setViewMode("locked");
                       }}
                       title="Lock view to draw/edit"

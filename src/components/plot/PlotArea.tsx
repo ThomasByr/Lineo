@@ -52,1048 +52,1061 @@ export interface PlotAreaHandle {
   getCurrentView: () => { x: { min: number; max: number }; y: { min: number; max: number } } | null;
 }
 
-export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
-  series,
-  onAddSeries,
-  editingSeriesId,
-  updateSeries,
-  updatePlotSettings,
-  viewMode = "auto",
-  plotSettings,
-  onViewChange,
-  startTransaction,
-  commitTransaction,
-}, ref) => {
-  const { addNotification } = useNotification();
-  const { registerExportHandler, lockedView } = useProject();
-  const chartRef = useRef<ChartJS>(null);
-
-  useImperativeHandle(ref, () => ({
-    getCurrentView: () => {
-      const chart = chartRef.current;
-      if (!chart || !chart.scales.x || !chart.scales.y) return null;
-      return {
-        x: { min: chart.scales.x.min, max: chart.scales.x.max },
-        y: { min: chart.scales.y.min, max: chart.scales.y.max },
-      };
+export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
+  (
+    {
+      series,
+      onAddSeries,
+      editingSeriesId,
+      updateSeries,
+      updatePlotSettings,
+      viewMode = "auto",
+      plotSettings,
+      onViewChange,
+      startTransaction,
+      commitTransaction,
     },
-  }));
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [drawnPoints, setDrawnPoints] = useState<DataPoint[]>([]);
-  const [bezierPoints, setBezierPoints] = useState<DataPoint[]>([]);
-  const [drawMode, setDrawMode] = useState(false);
+    ref,
+  ) => {
+    const { addNotification } = useNotification();
+    const { registerExportHandler, lockedView } = useProject();
+    const chartRef = useRef<ChartJS>(null);
 
-  const [draggingPointIndex, setDraggingPointIndex] = useState<number | null>(null);
-  const startDragSeries = useRef<Series | null>(null);
-  const [_, forceUpdate] = useState(0);
+    useImperativeHandle(ref, () => ({
+      getCurrentView: () => {
+        const chart = chartRef.current;
+        if (!chart || !chart.scales.x || !chart.scales.y) return null;
+        return {
+          x: { min: chart.scales.x.min, max: chart.scales.x.max },
+          y: { min: chart.scales.y.min, max: chart.scales.y.max },
+        };
+      },
+    }));
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [drawnPoints, setDrawnPoints] = useState<DataPoint[]>([]);
+    const [bezierPoints, setBezierPoints] = useState<DataPoint[]>([]);
+    const [drawMode, setDrawMode] = useState(false);
 
-  // Custom Legend State
-  const [legendPos, setLegendPos] = useState(plotSettings?.legendPosition || { x: 100, y: 100 });
-  const [isDraggingLegend, setIsDraggingLegend] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    const [draggingPointIndex, setDraggingPointIndex] = useState<number | null>(null);
+    const startDragSeries = useRef<Series | null>(null);
+    const [_, forceUpdate] = useState(0);
 
-  const {
-    autoCrop,
-    toggleAutoCrop,
-    exportScale,
-    setExportScale,
-    isExportModalOpen,
-    setIsExportModalOpen,
-    isExportSettingsModalOpen,
-    setIsExportSettingsModalOpen,
-    pushViewModeOverride,
-    popViewModeOverride,
-    setLockedView,
-  } = useProject();
+    // Custom Legend State
+    const [legendPos, setLegendPos] = useState(plotSettings?.legendPosition || { x: 100, y: 100 });
+    const [isDraggingLegend, setIsDraggingLegend] = useState(false);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const drawOverridePushed = useRef(false);
+    const {
+      autoCrop,
+      toggleAutoCrop,
+      exportScale,
+      setExportScale,
+      isExportModalOpen,
+      setIsExportModalOpen,
+      isExportSettingsModalOpen,
+      setIsExportSettingsModalOpen,
+      pushViewModeOverride,
+      popViewModeOverride,
+      setLockedView,
+    } = useProject();
 
-  const [wrapperStyle, setWrapperStyle] = useState<any>({ width: "100%", height: "100%" });
+    const drawOverridePushed = useRef(false);
 
-  const updateSize = () => {
-    if (!containerRef.current) return;
-    const { width, height } = containerRef.current.getBoundingClientRect();
-    if (!plotSettings?.aspectRatio) {
-      setWrapperStyle({ width: "100%", height: "100%" });
-      return;
-    }
+    const [wrapperStyle, setWrapperStyle] = useState<any>({ width: "100%", height: "100%" });
 
-    const targetRatio = plotSettings.aspectRatio;
-    const containerRatio = width / height;
-
-    // Use a small buffer to avoid oscillation
-    if (containerRatio > targetRatio) {
-      // Container is wider than chart -> Fill Height
-      setWrapperStyle({
-        height: "100%",
-        width: `${height * targetRatio}px`,
-      });
-    } else {
-      // Container is taller than chart -> Fill Width
-      setWrapperStyle({
-        width: "100%",
-        height: `${width / targetRatio}px`,
-      });
-    }
-  };
-
-  useResizeObserver(containerRef, () => updateSize(), 50);
-
-  useEffect(() => {
-    registerExportHandler(async () => {
-      // We don't need to do anything here since the menu triggers the modal via
-      // setIsExportModalOpen in context, which we listen to.
-      // But if we want to ensure it opens via keyboard shortcut etc that calls exportChart():
-      setIsExportModalOpen(true);
-    });
-    return () => registerExportHandler(async () => {}); // cleanup
-  }, [registerExportHandler]);
-
-  useEffect(() => {
-    updateSize();
-  }, [plotSettings?.aspectRatio]);
-
-  useEffect(() => {
-    if (plotSettings?.legendPosition && !isDraggingLegend) {
-      setLegendPos(plotSettings.legendPosition);
-    }
-  }, [plotSettings?.legendPosition, isDraggingLegend]);
-
-  // Reset drawn points when data changes or mode toggles
-  useEffect(() => {
-    if (!drawMode) {
-      setDrawnPoints([]);
-      setBezierPoints([]);
-    }
-
-    // Manage temporary override: when entering draw mode, force view mode to 'locked';
-    // when exiting, restore previous.
-    if (drawMode) {
-      if (!drawOverridePushed.current) {
-        if (chartRef.current) {
-            const { x, y } = chartRef.current.scales;
-            setLockedView({
-                xMin: x.min,
-                xMax: x.max,
-                yMin: y.min,
-                yMax: y.max
-            });
-        }
-        pushViewModeOverride("locked", "draw");
-        drawOverridePushed.current = true;
+    const updateSize = () => {
+      if (!containerRef.current) return;
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      if (!plotSettings?.aspectRatio) {
+        setWrapperStyle({ width: "100%", height: "100%" });
+        return;
       }
-    } else {
-      if (drawOverridePushed.current) {
-        popViewModeOverride();
-        drawOverridePushed.current = false;
-      }
-    }
 
-    // Cleanup in case of unmount while override is active
-    return () => {
-      if (drawOverridePushed.current) {
-        popViewModeOverride();
-        drawOverridePushed.current = false;
+      const targetRatio = plotSettings.aspectRatio;
+      const containerRatio = width / height;
+
+      // Use a small buffer to avoid oscillation
+      if (containerRatio > targetRatio) {
+        // Container is wider than chart -> Fill Height
+        setWrapperStyle({
+          height: "100%",
+          width: `${height * targetRatio}px`,
+        });
+      } else {
+        // Container is taller than chart -> Fill Width
+        setWrapperStyle({
+          width: "100%",
+          height: `${width / targetRatio}px`,
+        });
       }
     };
-  }, [drawMode]);
 
-  const handleExport = async (options: {
-    format: "png" | "jpg";
-    scale: number;
-    transparent: boolean;
-    quality: number;
-  }) => {
-    if (!containerRef.current) {
-      console.error("Container reference not found");
-      addNotification("error", "Chart not ready yet");
-      return;
-    }
+    useResizeObserver(containerRef, () => updateSize(), 50);
 
-    const { format, scale, transparent, quality } = options;
-    const chart = chartRef.current;
-    const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
-    let restoreRequired = false;
-    let originalGenerateLabels: any = null;
-    let originalDPR: number | null = null;
-
-    if (chart) {
-      originalDPR = chart.options.devicePixelRatio || null;
-      chart.options.devicePixelRatio = scale;
-      chart.resize();
-    }
-
-    if (shouldHideLegend && chart) {
-      // @ts-ignore
-      originalGenerateLabels = chart.options.plugins?.legend?.labels?.generateLabels;
-
-      // @ts-ignore
-      chart.options.plugins.legend.labels.generateLabels = function (chart) {
-        const defaultGenerator = ChartJS.defaults.plugins.legend.labels.generateLabels;
-        const generator = originalGenerateLabels || defaultGenerator;
-        const items = generator.call(this, chart);
-        return items.map((item: any) => ({
-          ...item,
-          fontColor: "rgba(0,0,0,0)",
-          color: "rgba(0,0,0,0)",
-          fillStyle: "rgba(0,0,0,0)",
-          strokeStyle: "rgba(0,0,0,0)",
-          boxBorderWidth: 0,
-        }));
-      };
-      chart.update();
-      restoreRequired = true;
-    }
-
-    try {
-      const bytes = await captureCanvas(containerRef.current, format, autoCrop, scale, transparent, quality);
-      // Cast to any to avoid "SharedArrayBuffer" type mismatch error
-      const blob = new Blob([bytes as any], {
-        type: format === "jpg" ? "image/jpeg" : "image/png",
+    useEffect(() => {
+      registerExportHandler(async () => {
+        // We don't need to do anything here since the menu triggers the modal via
+        // setIsExportModalOpen in context, which we listen to.
+        // But if we want to ensure it opens via keyboard shortcut etc that calls exportChart():
+        setIsExportModalOpen(true);
       });
-      const savedPath = await saveImage(blob, `chart.${format}`);
-      if (savedPath) {
-        let message = `Chart exported as ${savedPath}`;
-        if (savedPath.includes("/")) {
-          // Unix path
-          const parts = savedPath.split("/");
-          const fileName = parts.pop();
-          const folderName = parts.pop();
-          if (fileName && folderName) {
-            message = `Chart exported as ${fileName} in ${folderName}`;
+      return () => registerExportHandler(async () => {}); // cleanup
+    }, [registerExportHandler]);
+
+    useEffect(() => {
+      updateSize();
+    }, [plotSettings?.aspectRatio]);
+
+    useEffect(() => {
+      if (plotSettings?.legendPosition && !isDraggingLegend) {
+        setLegendPos(plotSettings.legendPosition);
+      }
+    }, [plotSettings?.legendPosition, isDraggingLegend]);
+
+    // Reset drawn points when data changes or mode toggles
+    useEffect(() => {
+      if (!drawMode) {
+        setDrawnPoints([]);
+        setBezierPoints([]);
+      }
+
+      // Manage temporary override: when entering draw mode, force view mode to 'locked';
+      // when exiting, restore previous.
+      if (drawMode) {
+        if (!drawOverridePushed.current) {
+          if (chartRef.current) {
+            const { x, y } = chartRef.current.scales;
+            setLockedView({
+              xMin: x.min,
+              xMax: x.max,
+              yMin: y.min,
+              yMax: y.max,
+            });
           }
-        } else if (savedPath.includes("\\")) {
-          // Windows path
-          const parts = savedPath.split("\\");
-          const fileName = parts.pop();
-          const folderName = parts.pop();
-          if (fileName && folderName) {
-            message = `Chart exported as ${fileName} in ${folderName}`;
-          }
-        } else {
-          // Just filename (Web)
-          message = `Chart exported as ${savedPath}`;
+          pushViewModeOverride("locked", "draw");
+          drawOverridePushed.current = true;
         }
-
-        if (isTauri()) {
-          addNotification("success", message, {
-            label: "Open Folder",
-            onClick: () => showInFolder(savedPath),
-          });
-        } else {
-          addNotification("success", message);
+      } else {
+        if (drawOverridePushed.current) {
+          popViewModeOverride();
+          drawOverridePushed.current = false;
         }
       }
-    } catch (err) {
-      console.error("Failed to export", err);
-      addNotification("error", "Failed to export chart.");
-    } finally {
-      if (originalDPR !== null && chart) {
-        chart.options.devicePixelRatio = originalDPR || 1;
-        chart.resize();
-      }
-      if (restoreRequired && chart) {
-        if (originalGenerateLabels) {
-          // @ts-ignore
-          chart.options.plugins.legend.labels.generateLabels = originalGenerateLabels;
-        } else {
-          // @ts-ignore
-          delete chart.options.plugins.legend.labels.generateLabels;
+
+      // Cleanup in case of unmount while override is active
+      return () => {
+        if (drawOverridePushed.current) {
+          popViewModeOverride();
+          drawOverridePushed.current = false;
         }
-        chart.update();
-      }
-    }
-  };
-
-  const handleCopy = async () => {
-    if (!containerRef.current) {
-      console.error("Container reference not found");
-      addNotification("error", "Chart not ready yet");
-      return;
-    }
-
-    const chart = chartRef.current;
-    const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
-    let restoreRequired = false;
-    let originalGenerateLabels: any = null;
-    let originalDPR: number | null = null;
-
-    if (chart) {
-      originalDPR = chart.options.devicePixelRatio || null;
-      chart.options.devicePixelRatio = exportScale;
-      chart.resize();
-    }
-
-    if (shouldHideLegend && chart) {
-      // @ts-ignore
-      originalGenerateLabels = chart.options.plugins?.legend?.labels?.generateLabels;
-
-      // @ts-ignore
-      chart.options.plugins.legend.labels.generateLabels = function (chart) {
-        const defaultGenerator = ChartJS.defaults.plugins.legend.labels.generateLabels;
-        const generator = originalGenerateLabels || defaultGenerator;
-        const items = generator.call(this, chart);
-        return items.map((item: any) => ({
-          ...item,
-          fontColor: "rgba(0,0,0,0)",
-          color: "rgba(0,0,0,0)",
-          fillStyle: "rgba(0,0,0,0)",
-          strokeStyle: "rgba(0,0,0,0)",
-          boxBorderWidth: 0,
-        }));
       };
-      chart.update();
-      restoreRequired = true;
-    }
+    }, [drawMode]);
 
-    try {
-      const bytes = await captureCanvas(containerRef.current, "png", autoCrop, exportScale);
-      // Cast to any to avoid "SharedArrayBuffer" type mismatch error
-      const blob = new Blob([bytes as any], { type: "image/png" });
-      await copyImageToClipboard(blob);
-      addNotification("success", "Chart copied to clipboard!");
-    } catch (err) {
-      console.error("Failed to copy", err);
-      addNotification("error", `Failed to copy to clipboard: ${err}`);
-    } finally {
-      if (originalDPR !== null && chart) {
-        chart.options.devicePixelRatio = originalDPR || 1;
+    const handleExport = async (options: {
+      format: "png" | "jpg";
+      scale: number;
+      transparent: boolean;
+      quality: number;
+    }) => {
+      if (!containerRef.current) {
+        console.error("Container reference not found");
+        addNotification("error", "Chart not ready yet");
+        return;
+      }
+
+      const { format, scale, transparent, quality } = options;
+      const chart = chartRef.current;
+      const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
+      let restoreRequired = false;
+      let originalGenerateLabels: any = null;
+      let originalDPR: number | null = null;
+
+      if (chart) {
+        originalDPR = chart.options.devicePixelRatio || null;
+        chart.options.devicePixelRatio = scale;
         chart.resize();
       }
-      if (restoreRequired && chart) {
-        if (originalGenerateLabels) {
-          // @ts-ignore
-          chart.options.plugins.legend.labels.generateLabels = originalGenerateLabels;
-        } else {
-          // @ts-ignore
-          delete chart.options.plugins.legend.labels.generateLabels;
-        }
+
+      if (shouldHideLegend && chart) {
+        // @ts-ignore
+        originalGenerateLabels = chart.options.plugins?.legend?.labels?.generateLabels;
+
+        // @ts-ignore
+        chart.options.plugins.legend.labels.generateLabels = function (chart) {
+          const defaultGenerator = ChartJS.defaults.plugins.legend.labels.generateLabels;
+          const generator = originalGenerateLabels || defaultGenerator;
+          const items = generator.call(this, chart);
+          return items.map((item: any) => ({
+            ...item,
+            fontColor: "rgba(0,0,0,0)",
+            color: "rgba(0,0,0,0)",
+            fillStyle: "rgba(0,0,0,0)",
+            strokeStyle: "rgba(0,0,0,0)",
+            boxBorderWidth: 0,
+          }));
+        };
         chart.update();
+        restoreRequired = true;
       }
-    }
-  };
 
-  const handleLegendMouseDown = (e: JSX.TargetedMouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    startTransaction?.();
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
-    setIsDraggingLegend(true);
-  };
+      try {
+        const bytes = await captureCanvas(
+          containerRef.current,
+          format,
+          autoCrop,
+          scale,
+          transparent,
+          quality,
+        );
+        // Cast to any to avoid "SharedArrayBuffer" type mismatch error
+        const blob = new Blob([bytes as any], {
+          type: format === "jpg" ? "image/jpeg" : "image/png",
+        });
+        const savedPath = await saveImage(blob, `chart.${format}`);
+        if (savedPath) {
+          let message = `Chart exported as ${savedPath}`;
+          if (savedPath.includes("/")) {
+            // Unix path
+            const parts = savedPath.split("/");
+            const fileName = parts.pop();
+            const folderName = parts.pop();
+            if (fileName && folderName) {
+              message = `Chart exported as ${fileName} in ${folderName}`;
+            }
+          } else if (savedPath.includes("\\")) {
+            // Windows path
+            const parts = savedPath.split("\\");
+            const fileName = parts.pop();
+            const folderName = parts.pop();
+            if (fileName && folderName) {
+              message = `Chart exported as ${fileName} in ${folderName}`;
+            }
+          } else {
+            // Just filename (Web)
+            message = `Chart exported as ${savedPath}`;
+          }
 
-  const handleMouseDown = (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
-    if (!chartRef.current) return;
+          if (isTauri()) {
+            addNotification("success", message, {
+              label: "Open Folder",
+              onClick: () => showInFolder(savedPath),
+            });
+          } else {
+            addNotification("success", message);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to export", err);
+        addNotification("error", "Failed to export chart.");
+      } finally {
+        if (originalDPR !== null && chart) {
+          chart.options.devicePixelRatio = originalDPR || 1;
+          chart.resize();
+        }
+        if (restoreRequired && chart) {
+          if (originalGenerateLabels) {
+            // @ts-ignore
+            chart.options.plugins.legend.labels.generateLabels = originalGenerateLabels;
+          } else {
+            // @ts-ignore
+            delete chart.options.plugins.legend.labels.generateLabels;
+          }
+          chart.update();
+        }
+      }
+    };
 
-    // Handle Manual Point Editing
-    if (editingSeriesId && updateSeries) {
+    const handleCopy = async () => {
+      if (!containerRef.current) {
+        console.error("Container reference not found");
+        addNotification("error", "Chart not ready yet");
+        return;
+      }
+
+      const chart = chartRef.current;
+      const shouldHideLegend = !plotSettings?.hideSystemLegend && plotSettings?.hideSystemLegendOnExport;
+      let restoreRequired = false;
+      let originalGenerateLabels: any = null;
+      let originalDPR: number | null = null;
+
+      if (chart) {
+        originalDPR = chart.options.devicePixelRatio || null;
+        chart.options.devicePixelRatio = exportScale;
+        chart.resize();
+      }
+
+      if (shouldHideLegend && chart) {
+        // @ts-ignore
+        originalGenerateLabels = chart.options.plugins?.legend?.labels?.generateLabels;
+
+        // @ts-ignore
+        chart.options.plugins.legend.labels.generateLabels = function (chart) {
+          const defaultGenerator = ChartJS.defaults.plugins.legend.labels.generateLabels;
+          const generator = originalGenerateLabels || defaultGenerator;
+          const items = generator.call(this, chart);
+          return items.map((item: any) => ({
+            ...item,
+            fontColor: "rgba(0,0,0,0)",
+            color: "rgba(0,0,0,0)",
+            fillStyle: "rgba(0,0,0,0)",
+            strokeStyle: "rgba(0,0,0,0)",
+            boxBorderWidth: 0,
+          }));
+        };
+        chart.update();
+        restoreRequired = true;
+      }
+
+      try {
+        const bytes = await captureCanvas(containerRef.current, "png", autoCrop, exportScale);
+        // Cast to any to avoid "SharedArrayBuffer" type mismatch error
+        const blob = new Blob([bytes as any], { type: "image/png" });
+        await copyImageToClipboard(blob);
+        addNotification("success", "Chart copied to clipboard!");
+      } catch (err) {
+        console.error("Failed to copy", err);
+        addNotification("error", `Failed to copy to clipboard: ${err}`);
+      } finally {
+        if (originalDPR !== null && chart) {
+          chart.options.devicePixelRatio = originalDPR || 1;
+          chart.resize();
+        }
+        if (restoreRequired && chart) {
+          if (originalGenerateLabels) {
+            // @ts-ignore
+            chart.options.plugins.legend.labels.generateLabels = originalGenerateLabels;
+          } else {
+            // @ts-ignore
+            delete chart.options.plugins.legend.labels.generateLabels;
+          }
+          chart.update();
+        }
+      }
+    };
+
+    const handleLegendMouseDown = (e: JSX.TargetedMouseEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      e.preventDefault();
+      startTransaction?.();
+      const rect = e.currentTarget.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+      setIsDraggingLegend(true);
+    };
+
+    const handleMouseDown = (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
+      if (!chartRef.current) return;
+
+      // Handle Manual Point Editing
+      if (editingSeriesId && updateSeries) {
+        const chart = chartRef.current;
+        const rect = chart.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const s = series.find((ser) => ser.id === editingSeriesId);
+        if (s && s.regression.manualPoints) {
+          // Check for hit
+          const hitRadius = 10;
+          const hitIndex = s.regression.manualPoints.findIndex((p) => {
+            const px = chart.scales.x.getPixelForValue(p.x);
+            const py = chart.scales.y.getPixelForValue(p.y);
+            return Math.sqrt((x - px) ** 2 + (y - py) ** 2) < hitRadius;
+          });
+
+          if (event.button === 2) {
+            // Right click
+            if (hitIndex !== -1) {
+              const newPoints = [...s.regression.manualPoints];
+              newPoints.splice(hitIndex, 1);
+              updateManualPoints(s, newPoints);
+            }
+            return;
+          }
+
+          if (hitIndex !== -1) {
+            setDraggingPointIndex(hitIndex);
+            startTransaction?.();
+          } else {
+            // Add new point
+            const xValue = chart.scales.x.getValueForPixel(x);
+            const yValue = chart.scales.y.getValueForPixel(y);
+            if (xValue !== undefined && yValue !== undefined) {
+              const newPoints = [...s.regression.manualPoints, { x: xValue, y: yValue }];
+              // Sort by x to keep spline happy? Or allow arbitrary order?
+              // Spline usually expects order. Let's sort.
+              newPoints.sort((a, b) => a.x - b.x);
+              updateManualPoints(s, newPoints);
+              // Start dragging the new point (find its new index)
+              const newIndex = newPoints.findIndex((p) => p.x === xValue && p.y === yValue);
+              setDraggingPointIndex(newIndex);
+              startDragSeries.current = JSON.parse(JSON.stringify(s)); // Save state BEFORE adding point? No, after adding point but before dragging?
+              // Actually, adding a point is an action itself.
+              // If we drag immediately, we want undo to remove the point?
+              // Or undo to move it back to where it was created?
+              // If we treat "add point" as separate action, we should record it.
+              // But updateManualPoints records it (skipHistory=false default).
+              // So startDragSeries should be the state AFTER adding point.
+              // But wait, updateManualPoints is async (React state update).
+              // So 's' is old state.
+              // We can't easily get the new state immediately.
+              // So for new point, maybe we don't support drag-undo in the same gesture perfectly?
+              // Or we just don't set startDragSeries for new point, so drag doesn't record separate move action?
+              // If we don't set startDragSeries, handleMouseUp won't record move action.
+              // That's fine. The "add point" action will record the point at its initial position.
+              // If user drags it, the final position will be recorded by the drag?
+              // No, if we don't record move action, the point stays at initial position in history?
+              // But the state is updated during drag with skipHistory=true?
+              // No, updateManualPoints default is skipHistory=false.
+              // So "add point" records history.
+              // Then drag happens.
+              // If we want drag to be smooth, we need skipHistory=true.
+              // But we are not in drag loop yet.
+              // We set draggingPointIndex.
+              // Next mouseMove will trigger drag logic.
+              // So we SHOULD set startDragSeries.
+              // But we don't have the state with the new point yet.
+              // We can construct it.
+              // Let's just skip setting startDragSeries for new point for now to avoid complexity.
+              // The user can undo "add point".
+            }
+          }
+        } else if (s && !s.regression.manualPoints) {
+          // Initialize manual points if empty
+          const xValue = chart.scales.x.getValueForPixel(x);
+          const yValue = chart.scales.y.getValueForPixel(y);
+          if (xValue !== undefined && yValue !== undefined) {
+            updateManualPoints(s, [{ x: xValue, y: yValue }]);
+            setDraggingPointIndex(0);
+            // Same here, skip startDragSeries
+          }
+        }
+        return;
+      }
+
+      if (!drawMode) return;
+      setIsDrawing(true);
+      setDrawnPoints([]);
+      setBezierPoints([]);
+    };
+
+    const updateManualPoints = (s: Series, points: DataPoint[], skipHistory: boolean = false) => {
+      if (!updateSeries) return;
+      const newRegressionPoints = calculateRegression(
+        s.data,
+        "manual",
+        undefined,
+        undefined,
+        undefined,
+        points,
+      );
+      updateSeries(
+        s.id,
+        {
+          regression: { ...s.regression, manualPoints: points },
+          regressionPoints: newRegressionPoints,
+        },
+        skipHistory,
+      );
+    };
+
+    const handleMouseMove = (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
+      if (isDraggingLegend) {
+        const containerRect = event.currentTarget.getBoundingClientRect();
+        setLegendPos({
+          x: event.clientX - containerRect.left - dragOffset.x,
+          y: event.clientY - containerRect.top - dragOffset.y,
+        });
+        return;
+      }
+
+      if (!chartRef.current) return;
+
       const chart = chartRef.current;
       const rect = chart.canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
-      const s = series.find((ser) => ser.id === editingSeriesId);
-      if (s && s.regression.manualPoints) {
-        // Check for hit
-        const hitRadius = 10;
-        const hitIndex = s.regression.manualPoints.findIndex((p) => {
-          const px = chart.scales.x.getPixelForValue(p.x);
-          const py = chart.scales.y.getPixelForValue(p.y);
-          return Math.sqrt((x - px) ** 2 + (y - py) ** 2) < hitRadius;
-        });
-
-        if (event.button === 2) {
-          // Right click
-          if (hitIndex !== -1) {
-            const newPoints = [...s.regression.manualPoints];
-            newPoints.splice(hitIndex, 1);
-            updateManualPoints(s, newPoints);
-          }
-          return;
-        }
-
-        if (hitIndex !== -1) {
-          setDraggingPointIndex(hitIndex);
-          startTransaction?.();
-        } else {
-          // Add new point
+      if (editingSeriesId && draggingPointIndex !== null && updateSeries) {
+        const s = series.find((ser) => ser.id === editingSeriesId);
+        if (s && s.regression.manualPoints) {
           const xValue = chart.scales.x.getValueForPixel(x);
           const yValue = chart.scales.y.getValueForPixel(y);
           if (xValue !== undefined && yValue !== undefined) {
-            const newPoints = [...s.regression.manualPoints, { x: xValue, y: yValue }];
-            // Sort by x to keep spline happy? Or allow arbitrary order?
-            // Spline usually expects order. Let's sort.
+            const newPoints = [...s.regression.manualPoints];
+            newPoints[draggingPointIndex] = { x: xValue, y: yValue };
             newPoints.sort((a, b) => a.x - b.x);
-            updateManualPoints(s, newPoints);
-            // Start dragging the new point (find its new index)
-            const newIndex = newPoints.findIndex((p) => p.x === xValue && p.y === yValue);
-            setDraggingPointIndex(newIndex);
-            startDragSeries.current = JSON.parse(JSON.stringify(s)); // Save state BEFORE adding point? No, after adding point but before dragging?
-            // Actually, adding a point is an action itself.
-            // If we drag immediately, we want undo to remove the point?
-            // Or undo to move it back to where it was created?
-            // If we treat "add point" as separate action, we should record it.
-            // But updateManualPoints records it (skipHistory=false default).
-            // So startDragSeries should be the state AFTER adding point.
-            // But wait, updateManualPoints is async (React state update).
-            // So 's' is old state.
-            // We can't easily get the new state immediately.
-            // So for new point, maybe we don't support drag-undo in the same gesture perfectly?
-            // Or we just don't set startDragSeries for new point, so drag doesn't record separate move action?
-            // If we don't set startDragSeries, handleMouseUp won't record move action.
-            // That's fine. The "add point" action will record the point at its initial position.
-            // If user drags it, the final position will be recorded by the drag?
-            // No, if we don't record move action, the point stays at initial position in history?
-            // But the state is updated during drag with skipHistory=true?
-            // No, updateManualPoints default is skipHistory=false.
-            // So "add point" records history.
-            // Then drag happens.
-            // If we want drag to be smooth, we need skipHistory=true.
-            // But we are not in drag loop yet.
-            // We set draggingPointIndex.
-            // Next mouseMove will trigger drag logic.
-            // So we SHOULD set startDragSeries.
-            // But we don't have the state with the new point yet.
-            // We can construct it.
-            // Let's just skip setting startDragSeries for new point for now to avoid complexity.
-            // The user can undo "add point".
+            // Update dragging index if sort changed it?
+            // Actually, sorting while dragging might be annoying as points swap.
+            // Maybe only sort on mouse up?
+            // For now, let's NOT sort while dragging, but sort on update.
+            // But calculateSpline sorts internally.
+            // So we can just update the point.
+
+            // If we don't sort, the index remains valid.
+            // But calculateSpline sorts, so the curve might jump if points cross.
+            // That's acceptable.
+
+            // We need to update state to see the point move.
+            // But we shouldn't trigger full regression recalc on every move if it's expensive?
+            // Spline is cheap.
+
+            updateManualPoints(s, newPoints, true);
+
+            // If we sorted in updateManualPoints, we lost the index.
+            // So let's NOT sort in updateManualPoints if we are dragging?
+            // Or just find the point again by value (risky with floats).
+            // Let's just NOT sort in updateManualPoints for now, rely on calculateSpline sorting.
+            // But wait, calculateSpline sorts a COPY.
+            // So manualPoints order matters for UI (index) but not for curve.
+            // So we can keep them unsorted in state.
           }
         }
-      } else if (s && !s.regression.manualPoints) {
-        // Initialize manual points if empty
-        const xValue = chart.scales.x.getValueForPixel(x);
-        const yValue = chart.scales.y.getValueForPixel(y);
-        if (xValue !== undefined && yValue !== undefined) {
-          updateManualPoints(s, [{ x: xValue, y: yValue }]);
-          setDraggingPointIndex(0);
-          // Same here, skip startDragSeries
-        }
+        return;
       }
-      return;
-    }
 
-    if (!drawMode) return;
-    setIsDrawing(true);
-    setDrawnPoints([]);
-    setBezierPoints([]);
-  };
+      if (!isDrawing || !drawMode) return;
 
-  const updateManualPoints = (s: Series, points: DataPoint[], skipHistory: boolean = false) => {
-    if (!updateSeries) return;
-    const newRegressionPoints = calculateRegression(
-      s.data,
-      "manual",
-      undefined,
-      undefined,
-      undefined,
-      points,
-    );
-    updateSeries(
-      s.id,
-      {
-        regression: { ...s.regression, manualPoints: points },
-        regressionPoints: newRegressionPoints,
-      },
-      skipHistory,
-    );
-  };
+      const xValue = chart.scales.x.getValueForPixel(x);
+      const yValue = chart.scales.y.getValueForPixel(y);
 
-  const handleMouseMove = (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
-    if (isDraggingLegend) {
-      const containerRect = event.currentTarget.getBoundingClientRect();
-      setLegendPos({
-        x: event.clientX - containerRect.left - dragOffset.x,
-        y: event.clientY - containerRect.top - dragOffset.y,
-      });
-      return;
-    }
-
-    if (!chartRef.current) return;
-
-    const chart = chartRef.current;
-    const rect = chart.canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    if (editingSeriesId && draggingPointIndex !== null && updateSeries) {
-      const s = series.find((ser) => ser.id === editingSeriesId);
-      if (s && s.regression.manualPoints) {
-        const xValue = chart.scales.x.getValueForPixel(x);
-        const yValue = chart.scales.y.getValueForPixel(y);
-        if (xValue !== undefined && yValue !== undefined) {
-          const newPoints = [...s.regression.manualPoints];
-          newPoints[draggingPointIndex] = { x: xValue, y: yValue };
-          newPoints.sort((a, b) => a.x - b.x);
-          // Update dragging index if sort changed it?
-          // Actually, sorting while dragging might be annoying as points swap.
-          // Maybe only sort on mouse up?
-          // For now, let's NOT sort while dragging, but sort on update.
-          // But calculateSpline sorts internally.
-          // So we can just update the point.
-
-          // If we don't sort, the index remains valid.
-          // But calculateSpline sorts, so the curve might jump if points cross.
-          // That's acceptable.
-
-          // We need to update state to see the point move.
-          // But we shouldn't trigger full regression recalc on every move if it's expensive?
-          // Spline is cheap.
-
-          updateManualPoints(s, newPoints, true);
-
-          // If we sorted in updateManualPoints, we lost the index.
-          // So let's NOT sort in updateManualPoints if we are dragging?
-          // Or just find the point again by value (risky with floats).
-          // Let's just NOT sort in updateManualPoints for now, rely on calculateSpline sorting.
-          // But wait, calculateSpline sorts a COPY.
-          // So manualPoints order matters for UI (index) but not for curve.
-          // So we can keep them unsorted in state.
-        }
+      if (xValue !== undefined && yValue !== undefined) {
+        setDrawnPoints((prev) => [...prev, { x: xValue, y: yValue }]);
       }
-      return;
-    }
+    };
 
-    if (!isDrawing || !drawMode) return;
+    const handleMouseUp = () => {
+      if (isDraggingLegend) {
+        setIsDraggingLegend(false);
+        updatePlotSettings?.({ legendPosition: legendPos }, true);
+        commitTransaction?.("Move legend");
+        return;
+      }
 
-    const xValue = chart.scales.x.getValueForPixel(x);
-    const yValue = chart.scales.y.getValueForPixel(y);
+      if (draggingPointIndex !== null) {
+        commitTransaction?.("Move manual point");
+        setDraggingPointIndex(null);
+        return;
+      }
 
-    if (xValue !== undefined && yValue !== undefined) {
-      setDrawnPoints((prev) => [...prev, { x: xValue, y: yValue }]);
-    }
-  };
+      if (!isDrawing) return;
+      setIsDrawing(false);
+      processBezier();
+    };
 
-  const handleMouseUp = () => {
-    if (isDraggingLegend) {
-      setIsDraggingLegend(false);
-      updatePlotSettings?.({ legendPosition: legendPos }, true);
-      commitTransaction?.("Move legend");
-      return;
-    }
+    const processBezier = () => {
+      if (drawnPoints.length < 2) return;
 
-    if (draggingPointIndex !== null) {
-      commitTransaction?.("Move manual point");
-      setDraggingPointIndex(null);
-      return;
-    }
+      const points: [number, number][] = drawnPoints.map((p) => [p.x, p.y]);
 
-    if (!isDrawing) return;
-    setIsDrawing(false);
-    processBezier();
-  };
+      const xRange = Math.max(...points.map((p) => p[0])) - Math.min(...points.map((p) => p[0]));
+      const error = xRange / 50;
 
-  const processBezier = () => {
-    if (drawnPoints.length < 2) return;
+      try {
+        const curves = fitCurve(points, error || 1);
 
-    const points: [number, number][] = drawnPoints.map((p) => [p.x, p.y]);
+        const sampledPoints: DataPoint[] = [];
+        curves.forEach((curve: any) => {
+          const steps = 20;
+          for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            let x = 0,
+              y = 0;
 
-    const xRange = Math.max(...points.map((p) => p[0])) - Math.min(...points.map((p) => p[0]));
-    const error = xRange / 50;
-
-    try {
-      const curves = fitCurve(points, error || 1);
-
-      const sampledPoints: DataPoint[] = [];
-      curves.forEach((curve: any) => {
-        const steps = 20;
-        for (let i = 0; i <= steps; i++) {
-          const t = i / steps;
-          let x = 0,
-            y = 0;
-
-          if (curve.length === 4) {
-            // Cubic
-            const [p0, p1, p2, p3] = curve;
-            x =
-              Math.pow(1 - t, 3) * p0[0] +
-              3 * Math.pow(1 - t, 2) * t * p1[0] +
-              3 * (1 - t) * Math.pow(t, 2) * p2[0] +
-              Math.pow(t, 3) * p3[0];
-            y =
-              Math.pow(1 - t, 3) * p0[1] +
-              3 * Math.pow(1 - t, 2) * t * p1[1] +
-              3 * (1 - t) * Math.pow(t, 2) * p2[1] +
-              Math.pow(t, 3) * p3[1];
-          } else if (curve.length === 3) {
-            // Quadratic
-            const [p0, p1, p2] = curve;
-            x = Math.pow(1 - t, 2) * p0[0] + 2 * (1 - t) * t * p1[0] + Math.pow(t, 2) * p2[0];
-            y = Math.pow(1 - t, 2) * p0[1] + 2 * (1 - t) * t * p1[1] + Math.pow(t, 2) * p2[1];
-          } else if (curve.length === 2) {
-            // Linear
-            const [p0, p1] = curve;
-            x = (1 - t) * p0[0] + t * p1[0];
-            y = (1 - t) * p0[1] + t * p1[1];
+            if (curve.length === 4) {
+              // Cubic
+              const [p0, p1, p2, p3] = curve;
+              x =
+                Math.pow(1 - t, 3) * p0[0] +
+                3 * Math.pow(1 - t, 2) * t * p1[0] +
+                3 * (1 - t) * Math.pow(t, 2) * p2[0] +
+                Math.pow(t, 3) * p3[0];
+              y =
+                Math.pow(1 - t, 3) * p0[1] +
+                3 * Math.pow(1 - t, 2) * t * p1[1] +
+                3 * (1 - t) * Math.pow(t, 2) * p2[1] +
+                Math.pow(t, 3) * p3[1];
+            } else if (curve.length === 3) {
+              // Quadratic
+              const [p0, p1, p2] = curve;
+              x = Math.pow(1 - t, 2) * p0[0] + 2 * (1 - t) * t * p1[0] + Math.pow(t, 2) * p2[0];
+              y = Math.pow(1 - t, 2) * p0[1] + 2 * (1 - t) * t * p1[1] + Math.pow(t, 2) * p2[1];
+            } else if (curve.length === 2) {
+              // Linear
+              const [p0, p1] = curve;
+              x = (1 - t) * p0[0] + t * p1[0];
+              y = (1 - t) * p0[1] + t * p1[1];
+            }
+            sampledPoints.push({ x, y });
           }
-          sampledPoints.push({ x, y });
-        }
-      });
-      setBezierPoints(sampledPoints);
-    } catch (e) {
-      console.error("Bezier fit failed", e);
-    }
-  };
+        });
+        setBezierPoints(sampledPoints);
+      } catch (e) {
+        console.error("Bezier fit failed", e);
+      }
+    };
 
-  const saveDrawnCurve = () => {
-    if (bezierPoints.length > 0) {
-      onAddSeries("Drawn Curve", bezierPoints);
-      setDrawnPoints([]);
-      setBezierPoints([]);
-      setDrawMode(false);
-    }
-  };
+    const saveDrawnCurve = () => {
+      if (bezierPoints.length > 0) {
+        onAddSeries("Drawn Curve", bezierPoints);
+        setDrawnPoints([]);
+        setBezierPoints([]);
+        setDrawMode(false);
+      }
+    };
 
-  const datasets = series.flatMap((s) => {
-    const ds = [];
-    const isHidden = !s.visible;
+    const datasets = series.flatMap((s) => {
+      const ds = [];
+      const isHidden = !s.visible;
 
-    ds.push({
-      label: s.name,
-      data: s.data,
-      backgroundColor: s.color,
-      borderColor: s.color,
-      borderWidth: s.width,
-      borderDash: s.lineStyle === "dashed" ? [5, 5] : s.lineStyle === "dotted" ? [2, 2] : [],
-      showLine: s.showLine,
-      type: "scatter" as const,
-      pointRadius: s.pointSize,
-      pointStyle: s.pointStyle,
-      hidden: isHidden,
-      seriesId: s.id,
-    } as any);
-
-    if (s.regression.type !== "none" && s.regressionPoints.length > 0) {
       ds.push({
-        label: `${s.name} (${s.regression.type})`,
-        data: s.regressionPoints,
-        borderColor: s.regression.color,
-        borderWidth: s.regression.width,
-        borderDash: s.regression.style === "dashed" ? [5, 5] : s.regression.style === "dotted" ? [2, 2] : [],
+        label: s.name,
+        data: s.data,
+        backgroundColor: s.color,
+        borderColor: s.color,
+        borderWidth: s.width,
+        borderDash: s.lineStyle === "dashed" ? [5, 5] : s.lineStyle === "dotted" ? [2, 2] : [],
+        showLine: s.showLine,
+        type: "scatter" as const,
+        pointRadius: s.pointSize,
+        pointStyle: s.pointStyle,
+        hidden: isHidden,
+        seriesId: s.id,
+      } as any);
+
+      if (s.regression.type !== "none" && s.regressionPoints.length > 0) {
+        ds.push({
+          label: `${s.name} (${s.regression.type})`,
+          data: s.regressionPoints,
+          borderColor: s.regression.color,
+          borderWidth: s.regression.width,
+          borderDash:
+            s.regression.style === "dashed" ? [5, 5] : s.regression.style === "dotted" ? [2, 2] : [],
+          showLine: true,
+          pointRadius: 0,
+          type: "scatter" as const,
+          isRegression: true,
+          hidden: isHidden,
+          seriesId: s.id,
+        } as any);
+      }
+
+      // Render manual points handles if editing
+      if (editingSeriesId === s.id && s.regression.manualPoints) {
+        ds.push({
+          label: `${s.name} Handles`,
+          data: s.regression.manualPoints,
+          backgroundColor: "rgba(255, 0, 0, 0.7)",
+          borderColor: "white",
+          borderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          type: "scatter" as const,
+          isHandle: true,
+          hidden: isHidden,
+          seriesId: s.id,
+        } as any);
+      }
+
+      return ds;
+    });
+
+    // Add drawing datasets
+    if (drawMode) {
+      datasets.push({
+        label: "Hand Drawn",
+        data: drawnPoints,
+        backgroundColor: "rgba(150, 150, 150, 0.5)",
+        type: "scatter" as const,
+        pointRadius: 2,
+        pointStyle: "circle",
+        borderColor: "rgba(150, 150, 150, 0.5)",
         showLine: true,
+        borderWidth: 1,
+      } as any);
+      datasets.push({
+        label: "Bezier Fit",
+        data: bezierPoints,
+        backgroundColor: "rgba(54, 162, 235, 1)",
+        type: "scatter" as const,
         pointRadius: 0,
-        type: "scatter" as const,
-        isRegression: true,
-        hidden: isHidden,
-        seriesId: s.id,
-      } as any);
-    }
-
-    // Render manual points handles if editing
-    if (editingSeriesId === s.id && s.regression.manualPoints) {
-      ds.push({
-        label: `${s.name} Handles`,
-        data: s.regression.manualPoints,
-        backgroundColor: "rgba(255, 0, 0, 0.7)",
-        borderColor: "white",
+        borderColor: "rgba(54, 162, 235, 1)",
         borderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        type: "scatter" as const,
-        isHandle: true,
-        hidden: isHidden,
-        seriesId: s.id,
+        showLine: true,
       } as any);
     }
 
-    return ds;
-  });
+    const data = { datasets };
 
-  // Add drawing datasets
-  if (drawMode) {
-    datasets.push({
-      label: "Hand Drawn",
-      data: drawnPoints,
-      backgroundColor: "rgba(150, 150, 150, 0.5)",
-      type: "scatter" as const,
-      pointRadius: 2,
-      pointStyle: "circle",
-      borderColor: "rgba(150, 150, 150, 0.5)",
-      showLine: true,
-      borderWidth: 1,
-    } as any);
-    datasets.push({
-      label: "Bezier Fit",
-      data: bezierPoints,
-      backgroundColor: "rgba(54, 162, 235, 1)",
-      type: "scatter" as const,
-      pointRadius: 0,
-      borderColor: "rgba(54, 162, 235, 1)",
-      borderWidth: 2,
-      showLine: true,
-    } as any);
-  }
+    const viewScalesRef = useRef<{
+      x: { min: number; max: number };
+      y: { min: number; max: number };
+    } | null>(null);
 
-  const data = { datasets };
-
-  const viewScalesRef = useRef<{
-    x: { min: number; max: number };
-    y: { min: number; max: number };
-  } | null>(null);
-
-  // Handle view mode changes
-  useEffect(() => {
-    if (viewMode === "auto") {
-      if (chartRef.current) {
-        chartRef.current.resetZoom();
+    // Handle view mode changes
+    useEffect(() => {
+      if (viewMode === "auto") {
+        if (chartRef.current) {
+          chartRef.current.resetZoom();
+        }
+        viewScalesRef.current = null;
+      } else {
+        // Manual or Locked
+        // If we don't have scales yet (coming from Auto), capture them
+        if (!viewScalesRef.current && chartRef.current) {
+          const { x, y } = chartRef.current.scales;
+          viewScalesRef.current = {
+            x: { min: x.min, max: x.max },
+            y: { min: y.min, max: y.max },
+          };
+          // Force re-render to apply these scales immediately
+          forceUpdate((n) => n + 1);
+        }
       }
-      viewScalesRef.current = null;
-    } else {
-      // Manual or Locked
-      // If we don't have scales yet (coming from Auto), capture them
-      if (!viewScalesRef.current && chartRef.current) {
-        const { x, y } = chartRef.current.scales;
-        viewScalesRef.current = {
-          x: { min: x.min, max: x.max },
-          y: { min: y.min, max: y.max },
-        };
-        // Force re-render to apply these scales immediately
+    }, [viewMode]);
+
+    // Sync plotSettings ranges to viewScalesRef
+    useEffect(() => {
+      if (viewMode === "auto") return;
+
+      let changed = false;
+      // Use current scales or default if not yet initialized
+      const current = viewScalesRef.current
+        ? {
+            x: { ...viewScalesRef.current.x },
+            y: { ...viewScalesRef.current.y },
+          }
+        : chartRef.current
+          ? {
+              x: { min: chartRef.current.scales.x.min, max: chartRef.current.scales.x.max },
+              y: { min: chartRef.current.scales.y.min, max: chartRef.current.scales.y.max },
+            }
+          : { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
+
+      if (plotSettings?.xMin !== undefined && Math.abs(plotSettings.xMin - current.x.min) > 1e-10) {
+        current.x.min = plotSettings.xMin;
+        changed = true;
+      }
+      if (plotSettings?.xMax !== undefined && Math.abs(plotSettings.xMax - current.x.max) > 1e-10) {
+        current.x.max = plotSettings.xMax;
+        changed = true;
+      }
+      if (plotSettings?.yMin !== undefined && Math.abs(plotSettings.yMin - current.y.min) > 1e-10) {
+        current.y.min = plotSettings.yMin;
+        changed = true;
+      }
+      if (plotSettings?.yMax !== undefined && Math.abs(plotSettings.yMax - current.y.max) > 1e-10) {
+        current.y.max = plotSettings.yMax;
+        changed = true;
+      }
+
+      if (changed) {
+        viewScalesRef.current = current;
         forceUpdate((n) => n + 1);
       }
-    }
-  }, [viewMode]);
+    }, []); // Logic for syncing viewScalesRef was causing side effects. Removed dependency on settings.
 
-  // Sync plotSettings ranges to viewScalesRef
-  useEffect(() => {
-    if (viewMode === "auto") return;
-
-    let changed = false;
-    // Use current scales or default if not yet initialized
-    const current = viewScalesRef.current
-      ? {
-          x: { ...viewScalesRef.current.x },
-          y: { ...viewScalesRef.current.y },
-        }
-      : chartRef.current
-        ? {
-            x: { min: chartRef.current.scales.x.min, max: chartRef.current.scales.x.max },
-            y: { min: chartRef.current.scales.y.min, max: chartRef.current.scales.y.max },
-          }
-        : { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
-
-    if (plotSettings?.xMin !== undefined && Math.abs(plotSettings.xMin - current.x.min) > 1e-10) {
-      current.x.min = plotSettings.xMin;
-      changed = true;
-    }
-    if (plotSettings?.xMax !== undefined && Math.abs(plotSettings.xMax - current.x.max) > 1e-10) {
-      current.x.max = plotSettings.xMax;
-      changed = true;
-    }
-    if (plotSettings?.yMin !== undefined && Math.abs(plotSettings.yMin - current.y.min) > 1e-10) {
-      current.y.min = plotSettings.yMin;
-      changed = true;
-    }
-    if (plotSettings?.yMax !== undefined && Math.abs(plotSettings.yMax - current.y.max) > 1e-10) {
-      current.y.max = plotSettings.yMax;
-      changed = true;
-    }
-
-    if (changed) {
-      viewScalesRef.current = current;
-      forceUpdate((n) => n + 1);
-    }
-  }, []); // Logic for syncing viewScalesRef was causing side effects. Removed dependency on settings.
-
-  const updateViewScales = ({ chart }: { chart: ChartJS }) => {
-    const { x, y } = chart.scales;
-    const newView = {
-      x: { min: x.min, max: x.max },
-      y: { min: y.min, max: y.max },
+    const updateViewScales = ({ chart }: { chart: ChartJS }) => {
+      const { x, y } = chart.scales;
+      const newView = {
+        x: { min: x.min, max: x.max },
+        y: { min: y.min, max: y.max },
+      };
+      viewScalesRef.current = newView;
+      onViewChange?.(newView);
     };
-    viewScalesRef.current = newView;
-    onViewChange?.(newView);
-  };
 
-  const getMinMax = (axis: 'x' | 'y') => {
+    const getMinMax = (axis: "x" | "y") => {
       if (viewMode === "locked" && lockedView) {
-          return {
-              min: axis === 'x' ? lockedView.xMin : lockedView.yMin,
-              max: axis === 'x' ? lockedView.xMax : lockedView.yMax,
-          };
+        return {
+          min: axis === "x" ? lockedView.xMin : lockedView.yMin,
+          max: axis === "x" ? lockedView.xMax : lockedView.yMax,
+        };
       } else if (viewMode === "manual" && plotSettings) {
-          return {
-              min: axis === 'x' ? plotSettings.xMin : plotSettings.yMin,
-              max: axis === 'x' ? plotSettings.xMax : plotSettings.yMax,
-          };
+        return {
+          min: axis === "x" ? plotSettings.xMin : plotSettings.yMin,
+          max: axis === "x" ? plotSettings.xMax : plotSettings.yMax,
+        };
       }
       return { min: undefined, max: undefined };
-  };
+    };
 
-  const xScales = getMinMax('x');
-  const yScales = getMinMax('y');
+    const xScales = getMinMax("x");
+    const yScales = getMinMax("y");
 
-  const options: any = {
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        type: "linear" as const,
-        position: "bottom" as const,
-        min: xScales.min,
-        max: xScales.max,
+    const options: any = {
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: "linear" as const,
+          position: "bottom" as const,
+          min: xScales.min,
+          max: xScales.max,
+          title: {
+            display: !!plotSettings?.xLabel,
+            text: plotSettings?.xLabel,
+            font: {
+              size: plotSettings?.xAxisLabelFontSize || 12,
+              weight: plotSettings?.xLabelStyle?.bold ? "bold" : "normal",
+              style: plotSettings?.xLabelStyle?.italic ? "italic" : "normal",
+            },
+          },
+          ticks: {
+            font: {
+              size: plotSettings?.xTickLabelFontSize || 10,
+            },
+          },
+          grid: {
+            display: plotSettings?.showGridX !== false,
+            lineWidth: plotSettings?.gridLineWidthX || 1,
+          },
+          border: {
+            width: plotSettings?.axisLineWidthX || 1,
+          },
+        },
+        y: {
+          type: "linear" as const,
+          position: "left" as const,
+          min: yScales.min,
+          max: yScales.max,
+          title: {
+            display: !!plotSettings?.yLabel,
+            text: plotSettings?.yLabel,
+            font: {
+              size: plotSettings?.yAxisLabelFontSize || 12,
+              weight: plotSettings?.yLabelStyle?.bold ? "bold" : "normal",
+              style: plotSettings?.yLabelStyle?.italic ? "italic" : "normal",
+            },
+          },
+          ticks: {
+            font: {
+              size: plotSettings?.yTickLabelFontSize || 10,
+            },
+          },
+          grid: {
+            display: plotSettings?.showGridY !== false,
+            lineWidth: plotSettings?.gridLineWidthY || 1,
+          },
+          border: {
+            width: plotSettings?.axisLineWidthY || 1,
+          },
+        },
+      },
+      animation: {
+        duration: 0,
+      },
+      plugins: {
         title: {
-          display: !!plotSettings?.xLabel,
-          text: plotSettings?.xLabel,
+          display: !!plotSettings?.title,
+          text: plotSettings?.title,
           font: {
-            size: plotSettings?.xAxisLabelFontSize || 12,
-            weight: plotSettings?.xLabelStyle?.bold ? "bold" : "normal",
-            style: plotSettings?.xLabelStyle?.italic ? "italic" : "normal",
+            size: plotSettings?.titleFontSize || 16,
+            weight: plotSettings?.titleStyle?.bold ? "bold" : "normal",
+            style: plotSettings?.titleStyle?.italic ? "italic" : "normal",
           },
         },
-        ticks: {
-          font: {
-            size: plotSettings?.xTickLabelFontSize || 10,
+        legend: {
+          display: !plotSettings?.hideSystemLegend,
+          position: "bottom",
+          labels: {
+            usePointStyle: true,
           },
-        },
-        grid: {
-          display: plotSettings?.showGridX !== false,
-          lineWidth: plotSettings?.gridLineWidthX || 1,
-        },
-        border: {
-          width: plotSettings?.axisLineWidthX || 1,
-        },
-      },
-      y: {
-        type: "linear" as const,
-        position: "left" as const,
-        min: yScales.min,
-        max: yScales.max,
-        title: {
-          display: !!plotSettings?.yLabel,
-          text: plotSettings?.yLabel,
-          font: {
-            size: plotSettings?.yAxisLabelFontSize || 12,
-            weight: plotSettings?.yLabelStyle?.bold ? "bold" : "normal",
-            style: plotSettings?.yLabelStyle?.italic ? "italic" : "normal",
-          },
-        },
-        ticks: {
-          font: {
-            size: plotSettings?.yTickLabelFontSize || 10,
-          },
-        },
-        grid: {
-          display: plotSettings?.showGridY !== false,
-          lineWidth: plotSettings?.gridLineWidthY || 1,
-        },
-        border: {
-          width: plotSettings?.axisLineWidthY || 1,
-        },
-      },
-    },
-    animation: {
-      duration: 0,
-    },
-    plugins: {
-      title: {
-        display: !!plotSettings?.title,
-        text: plotSettings?.title,
-        font: {
-          size: plotSettings?.titleFontSize || 16,
-          weight: plotSettings?.titleStyle?.bold ? "bold" : "normal",
-          style: plotSettings?.titleStyle?.italic ? "italic" : "normal",
-        },
-      },
-      legend: {
-        display: !plotSettings?.hideSystemLegend,
-        position: "bottom",
-        labels: {
-          usePointStyle: true,
-        },
-        onClick: (_e: any, legendItem: any, legend: any) => {
-          const index = legendItem.datasetIndex;
-          const dataset = legend.chart.data.datasets[index];
-          if (dataset.seriesId && updateSeries) {
-            const s = series.find((ser) => ser.id === dataset.seriesId);
-            if (s) {
-              updateSeries(s.id, { visible: !s.visible });
-            }
-          } else {
-            const ci = legend.chart;
-            if (ci.isDatasetVisible(index)) {
-              ci.hide(index);
-              legendItem.hidden = true;
+          onClick: (_e: any, legendItem: any, legend: any) => {
+            const index = legendItem.datasetIndex;
+            const dataset = legend.chart.data.datasets[index];
+            if (dataset.seriesId && updateSeries) {
+              const s = series.find((ser) => ser.id === dataset.seriesId);
+              if (s) {
+                updateSeries(s.id, { visible: !s.visible });
+              }
             } else {
-              ci.show(index);
-              legendItem.hidden = false;
+              const ci = legend.chart;
+              if (ci.isDatasetVisible(index)) {
+                ci.hide(index);
+                legendItem.hidden = true;
+              } else {
+                ci.show(index);
+                legendItem.hidden = false;
+              }
             }
-          }
+          },
         },
-      },
-      tooltip: {
-        enabled: !drawMode,
-      },
-      zoom: {
-        pan: {
-          enabled: viewMode === "manual",
-          mode: "xy",
-          onPan: updateViewScales,
+        tooltip: {
+          enabled: !drawMode,
         },
         zoom: {
-          wheel: {
+          pan: {
             enabled: viewMode === "manual",
+            mode: "xy",
+            onPan: updateViewScales,
           },
-          pinch: {
-            enabled: viewMode === "manual",
+          zoom: {
+            wheel: {
+              enabled: viewMode === "manual",
+            },
+            pinch: {
+              enabled: viewMode === "manual",
+            },
+            mode: "xy",
+            onZoom: updateViewScales,
           },
-          mode: "xy",
-          onZoom: updateViewScales,
         },
       },
-    },
-    events: ["mousemove", "mouseout", "click", "touchstart", "touchmove"],
-  };
+      events: ["mousemove", "mouseout", "click", "touchstart", "touchmove"],
+    };
 
-  return (
-    <div className="plot-area" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-      <div className="controls">
-        <button
-          onClick={() => setDrawMode(!drawMode)}
-          className={`draw-toggle ${drawMode ? "active" : ""}`}
-          aria-pressed={drawMode}
-          title={drawMode ? "Exit Draw Mode" : "Enter Draw Mode"}
-        >
-          {drawMode ? "Exit Draw Mode" : "Enter Draw Mode"}
-        </button>
-        {drawMode && bezierPoints.length > 0 && <button onClick={saveDrawnCurve}>Save as Series</button>}
-        <button onClick={() => setIsExportModalOpen(true)}>Export</button>
-        <button onClick={handleCopy}>Copy to Clipboard</button>
-
-        <div
-          style={{
-            width: "1px",
-            height: "24px",
-            backgroundColor: "#ccc",
-            margin: "0 5px",
-            alignSelf: "center",
-          }}
-        ></div>
-
-        <button
-          onClick={() => toggleAutoCrop()}
-          title={autoCrop ? "Auto Crop Enabled" : "Auto Crop Disabled"}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            backgroundColor: autoCrop ? "rgba(76, 175, 80, 0.1)" : "transparent",
-            border: "1px solid",
-            borderColor: autoCrop ? "#4caf50" : "#ccc",
-            color: autoCrop ? "inherit" : "#888",
-            transition: "all 0.2s ease",
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    return (
+      <div className="plot-area" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+        <div className="controls">
+          <button
+            onClick={() => setDrawMode(!drawMode)}
+            className={`draw-toggle ${drawMode ? "active" : ""}`}
+            aria-pressed={drawMode}
+            title={drawMode ? "Exit Draw Mode" : "Enter Draw Mode"}
           >
-            <path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path>
-            <path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path>
-          </svg>
-          <span style={{ lineHeight: 1 }}>Auto Crop</span>
-          {autoCrop && (
-            <span
-              style={{
-                fontSize: "1.2em",
-                marginLeft: "4px",
-                lineHeight: 1,
-                color: "#4caf50",
-                fontWeight: "bold",
-              }}
-            >
-              ✓
-            </span>
-          )}
-        </button>
+            {drawMode ? "Exit Draw Mode" : "Enter Draw Mode"}
+          </button>
+          {drawMode && bezierPoints.length > 0 && <button onClick={saveDrawnCurve}>Save as Series</button>}
+          <button onClick={() => setIsExportModalOpen(true)}>Export</button>
+          <button onClick={handleCopy}>Copy to Clipboard</button>
 
-        <button
-          onClick={() => setIsExportSettingsModalOpen(true)}
-          title="Export Settings"
+          <div
+            style={{
+              width: "1px",
+              height: "24px",
+              backgroundColor: "#ccc",
+              margin: "0 5px",
+              alignSelf: "center",
+            }}
+          ></div>
+
+          <button
+            onClick={() => toggleAutoCrop()}
+            title={autoCrop ? "Auto Crop Enabled" : "Auto Crop Disabled"}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              backgroundColor: autoCrop ? "rgba(76, 175, 80, 0.1)" : "transparent",
+              border: "1px solid",
+              borderColor: autoCrop ? "#4caf50" : "#ccc",
+              color: autoCrop ? "inherit" : "#888",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path>
+              <path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path>
+            </svg>
+            <span style={{ lineHeight: 1 }}>Auto Crop</span>
+            {autoCrop && (
+              <span
+                style={{
+                  fontSize: "1.2em",
+                  marginLeft: "4px",
+                  lineHeight: 1,
+                  color: "#4caf50",
+                  fontWeight: "bold",
+                }}
+              >
+                ✓
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setIsExportSettingsModalOpen(true)}
+            title="Export Settings"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "42px",
+              height: "42px",
+              padding: "0",
+              backgroundColor: "transparent",
+              border: "1px solid #ccc",
+              marginLeft: "5px",
+              color: "var(--text-secondary, #666)",
+              cursor: "pointer",
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+        </div>
+        <div
+          ref={containerRef}
+          className="chart-container"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
           style={{
+            position: "relative",
+            flex: 1,
+            minHeight: 0,
+            width: "100%",
+            overflow: "hidden",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: "42px",
-            height: "42px",
-            padding: "0",
-            backgroundColor: "transparent",
-            border: "1px solid #ccc",
-            marginLeft: "5px",
-            color: "var(--text-secondary, #666)",
-            cursor: "pointer",
           }}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-        </button>
-      </div>
-      <div
-        ref={containerRef}
-        className="chart-container"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        style={{
-          position: "relative",
-          flex: 1,
-          minHeight: 0,
-          width: "100%",
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div style={{ position: "relative", ...wrapperStyle }}>
-          <Scatter ref={chartRef} data={data} options={options} key={plotSettings?.aspectRatio || "auto"} />
+          <div style={{ position: "relative", ...wrapperStyle }}>
+            <Scatter ref={chartRef} data={data} options={options} key={plotSettings?.aspectRatio || "auto"} />
+          </div>
+
+          {plotSettings?.showLegend && (
+            <CustomLegend
+              series={series}
+              position={legendPos}
+              isDragging={isDraggingLegend}
+              onMouseDown={handleLegendMouseDown}
+              settings={plotSettings}
+            />
+          )}
         </div>
 
-        {plotSettings?.showLegend && (
-          <CustomLegend
-            series={series}
-            position={legendPos}
-            isDragging={isDraggingLegend}
-            onMouseDown={handleLegendMouseDown}
-            settings={plotSettings}
-          />
-        )}
+        <ExportSettingsModal
+          isOpen={isExportSettingsModalOpen}
+          onClose={() => setIsExportSettingsModalOpen(false)}
+          scale={exportScale}
+          onScaleChange={setExportScale}
+          onReset={() => setExportScale(2)}
+        />
+        <ExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onExport={handleExport}
+          globalScale={exportScale}
+        />
       </div>
-
-      <ExportSettingsModal
-        isOpen={isExportSettingsModalOpen}
-        onClose={() => setIsExportSettingsModalOpen(false)}
-        scale={exportScale}
-        onScaleChange={setExportScale}
-        onReset={() => setExportScale(2)}
-      />
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        onExport={handleExport}
-        globalScale={exportScale}
-      />
-    </div>
-  );
-});
+    );
+  },
+);

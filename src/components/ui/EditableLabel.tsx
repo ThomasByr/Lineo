@@ -24,8 +24,8 @@ export function EditableLabel({ value, onSave, className, style }: EditableLabel
     if (currentValue.trim() !== "") {
       onSave(currentValue);
     } else {
-        // Revert if empty
-        setCurrentValue(value);
+      // Revert if empty
+      setCurrentValue(value);
     }
     setIsEditing(false);
   };
