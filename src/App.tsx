@@ -15,7 +15,7 @@ import { DataTab } from "./components/tabs/DataTab";
 import { SettingsTab } from "./components/tabs/SettingsTab";
 import { GlobalSettingsTab } from "./components/tabs/GlobalSettingsTab";
 import { AnalysisTab } from "./components/tabs/AnalysisTab";
-import { PlotArea } from "./components/plot/PlotArea";
+import { PlotArea, PlotAreaHandle } from "./components/plot/PlotArea";
 import { PlotSettings } from "./types";
 
 import { NotificationBell } from "./components/notifications/NotificationBell";
@@ -55,6 +55,8 @@ function App() {
     overrideActive,
     overrideTop,
   } = useProject();
+
+  const plotAreaRef = useRef<PlotAreaHandle>(null);
 
   const [appZoom, setAppZoom] = useState(() => {
     const saved = localStorage.getItem("appZoom");
@@ -460,7 +462,21 @@ function App() {
                     </div>
                     <div
                       className={`view-mode-option ${viewMode === "locked" ? "active" : ""}`}
-                      onClick={() => setViewMode("locked")}
+                      onClick={() => {
+                        if (viewMode === "auto" && plotAreaRef.current) {
+                          // Capture current auto-view and freeze it into settings
+                          const currentView = plotAreaRef.current.getCurrentView();
+                          if (currentView) {
+                            updatePlotSettings({
+                              xMin: currentView.x.min,
+                              xMax: currentView.x.max,
+                              yMin: currentView.y.min,
+                              yMax: currentView.y.max,
+                            }, true); // skipHistory to treat this as part of the mode switch
+                          }
+                        }
+                        setViewMode("locked");
+                      }}
                       title="Lock view to draw/edit"
                     >
                       <span>🔒 Locked</span>
@@ -559,6 +575,7 @@ function App() {
 
             <div className="main-content">
               <PlotArea
+                ref={plotAreaRef}
                 series={series}
                 onAddSeries={addSeries}
                 editingSeriesId={editingSeriesId}

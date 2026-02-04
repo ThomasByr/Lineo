@@ -1,5 +1,5 @@
-import { useRef, useState, useEffect } from "preact/hooks";
-import { JSX } from "preact";
+import { useRef, useState, useEffect, useImperativeHandle } from "preact/hooks";
+import { JSX, forwardRef } from "preact/compat";
 import {
   Chart as ChartJS,
   LinearScale,
@@ -48,7 +48,11 @@ interface PlotAreaProps {
   commitTransaction?: (description: string) => void;
 }
 
-export function PlotArea({
+export interface PlotAreaHandle {
+  getCurrentView: () => { x: { min: number; max: number }; y: { min: number; max: number } } | null;
+}
+
+export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
   series,
   onAddSeries,
   editingSeriesId,
@@ -59,10 +63,21 @@ export function PlotArea({
   onViewChange,
   startTransaction,
   commitTransaction,
-}: PlotAreaProps) {
+}, ref) => {
   const { addNotification } = useNotification();
   const { registerExportHandler } = useProject();
   const chartRef = useRef<ChartJS>(null);
+
+  useImperativeHandle(ref, () => ({
+    getCurrentView: () => {
+      const chart = chartRef.current;
+      if (!chart || !chart.scales.x || !chart.scales.y) return null;
+      return {
+        x: { min: chart.scales.x.min, max: chart.scales.x.max },
+        y: { min: chart.scales.y.min, max: chart.scales.y.max },
+      };
+    },
+  }));
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawnPoints, setDrawnPoints] = useState<DataPoint[]>([]);
@@ -1046,4 +1061,4 @@ export function PlotArea({
       />
     </div>
   );
-}
+});
