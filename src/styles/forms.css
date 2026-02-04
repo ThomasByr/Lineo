@@ -121,6 +121,7 @@ input[type="file"] {
 label.toggle-container.toggle-container {
   /* Double class to increase specificity over .control-group label */
   display: flex;
+  position: relative;
   align-items: center;
   gap: 10px;
   cursor: pointer;
