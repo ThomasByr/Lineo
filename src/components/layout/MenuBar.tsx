@@ -29,10 +29,10 @@ export function MenuBar({
     canUndo,
     canRedo,
     hasSavedPath,
-    exportChart,
     autoCrop,
     toggleAutoCrop,
     setIsExportModalOpen,
+    setIsExportSettingsModalOpen,
     projectName,
   } = useProject();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -140,21 +140,12 @@ export function MenuBar({
           <div className="menu-divider" role="separator"></div>
           <div
             className="menu-option"
-            onClick={() => handleAction(() => exportChart("png"))}
+            onClick={() => handleAction(() => setIsExportModalOpen(true))}
             role="menuitem"
             tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, () => handleAction(() => exportChart("png")))}
+            onKeyDown={(e) => handleKeyDown(e, () => handleAction(() => setIsExportModalOpen(true)))}
           >
-            <span>Export to PNG</span>
-          </div>
-          <div
-            className="menu-option"
-            onClick={() => handleAction(() => exportChart("jpg"))}
-            role="menuitem"
-            tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, () => handleAction(() => exportChart("jpg")))}
-          >
-            <span>Export to JPG</span>
+            <span>Export...</span>
           </div>
           <div className="menu-divider" role="separator"></div>
           <div
@@ -241,10 +232,10 @@ export function MenuBar({
           </div>
           <div
             className="menu-option"
-            onClick={() => handleAction(() => setIsExportModalOpen(true))}
+            onClick={() => handleAction(() => setIsExportSettingsModalOpen(true))}
             role="menuitem"
             tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, () => handleAction(() => setIsExportModalOpen(true)))}
+            onKeyDown={(e) => handleKeyDown(e, () => handleAction(() => setIsExportSettingsModalOpen(true)))}
           >
             <span>Export Settings...</span>
           </div>

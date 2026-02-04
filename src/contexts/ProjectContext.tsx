@@ -71,6 +71,8 @@ interface ProjectContextType {
   setExportScale: (scale: number) => void;
   isExportModalOpen: boolean;
   setIsExportModalOpen: (isOpen: boolean) => void;
+  isExportSettingsModalOpen: boolean;
+  setIsExportSettingsModalOpen: (isOpen: boolean) => void;
 
   projectName: string | null;
 
@@ -111,6 +113,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
     return saved ? parseFloat(saved) : 2;
   });
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExportSettingsModalOpen, setIsExportSettingsModalOpen] = useState(false);
   const [viewMode, setViewModeState] = useState<ViewMode>("auto");
 
   const [history, setHistory] = useState<HistoryAction[]>([]);
@@ -830,6 +833,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
         setExportScale,
         isExportModalOpen,
         setIsExportModalOpen,
+        isExportSettingsModalOpen,
+        setIsExportSettingsModalOpen,
         projectName,
         lockedView,
         setLockedView,

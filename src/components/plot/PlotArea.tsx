@@ -93,8 +93,6 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
   const [isDraggingLegend, setIsDraggingLegend] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const [showExportModal, setShowExportModal] = useState(false);
-
   const {
     autoCrop,
     toggleAutoCrop,
@@ -102,6 +100,8 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
     setExportScale,
     isExportModalOpen,
     setIsExportModalOpen,
+    isExportSettingsModalOpen,
+    setIsExportSettingsModalOpen,
     pushViewModeOverride,
     popViewModeOverride,
   } = useProject();
@@ -140,7 +140,12 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
   useResizeObserver(containerRef, () => updateSize(), 50);
 
   useEffect(() => {
-    registerExportHandler(async () => setShowExportModal(true));
+    registerExportHandler(async () => {
+      // We don't need to do anything here since the menu triggers the modal via
+      // setIsExportModalOpen in context, which we listen to.
+      // But if we want to ensure it opens via keyboard shortcut etc that calls exportChart():
+      setIsExportModalOpen(true);
+    });
     return () => registerExportHandler(async () => {}); // cleanup
   }, [registerExportHandler]);
 
@@ -943,7 +948,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
           {drawMode ? "Exit Draw Mode" : "Enter Draw Mode"}
         </button>
         {drawMode && bezierPoints.length > 0 && <button onClick={saveDrawnCurve}>Save as Series</button>}
-        <button onClick={() => setShowExportModal(true)}>Export</button>
+        <button onClick={() => setIsExportModalOpen(true)}>Export</button>
         <button onClick={handleCopy}>Copy to Clipboard</button>
 
         <div
@@ -1001,7 +1006,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
         </button>
 
         <button
-          onClick={() => setIsExportModalOpen(true)}
+          onClick={() => setIsExportSettingsModalOpen(true)}
           title="Export Settings"
           style={{
             display: "flex",
@@ -1067,15 +1072,15 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
       </div>
 
       <ExportSettingsModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
+        isOpen={isExportSettingsModalOpen}
+        onClose={() => setIsExportSettingsModalOpen(false)}
         scale={exportScale}
         onScaleChange={setExportScale}
         onReset={() => setExportScale(2)}
       />
       <ExportModal
-        isOpen={showExportModal}
-        onClose={() => setShowExportModal(false)}
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
         onExport={handleExport}
         globalScale={exportScale}
       />
