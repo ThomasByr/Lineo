@@ -2,7 +2,6 @@ import { useState, useEffect } from "preact/hooks";
 import { createPortal } from "preact/compat";
 import { PlotSettings } from "../../types";
 import { PlotSettingsForm } from "../tabs/PlotSettingsForm";
-import { EditableLabel } from "../ui/EditableLabel";
 import "./GlobalSettingsModal.css";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { isTauri } from "../../platform";
@@ -27,21 +26,6 @@ interface GlobalSettingsModalProps {
 const STORAGE_KEY = "lineo_global_presets";
 const STARTUP_KEY = "lineo_startup_preset_id";
 
-// --- Compact Toggle Switch ---
-
-function CompactSwitch({ checked, onChange, title }: { checked: boolean, onChange: (c: boolean) => void, title?: string }) {
-    return (
-        <label className="compact-switch" title={title} onClick={(e) => e.stopPropagation()}>
-            <input 
-                type="checkbox" 
-                checked={checked} 
-                onChange={(e) => onChange(e.currentTarget.checked)} 
-            />
-            <span className="slider round"></span>
-        </label>
-    );
-}
-
 // --- Component ---
 
 export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings }: GlobalSettingsModalProps) {
@@ -49,6 +33,8 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
   const [presets, setPresets] = useState<Preset[]>([]);
   const [activePresetId, setActivePresetId] = useState<number | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [renamingId, setRenamingId] = useState<number | null>(null);
+  const [renameName, setRenameName] = useState("");
   
   // The state being edited in the main window
   const [formSettings, setFormSettings] = useState<PlotSettings>(currentSettings);
@@ -154,6 +140,24 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
         return p;
     });
     savePresetsToStorage(newPresets);
+  };
+
+  const startRenaming = (p: Preset) => {
+    setRenamingId(p.id);
+    setRenameName(p.name);
+  };
+
+  const saveRename = () => {
+    if (renamingId !== null && renameName.trim()) {
+        handleRenamePreset(renamingId, renameName);
+    }
+    setRenamingId(null);
+    setRenameName("");
+  };
+
+  const cancelRename = () => {
+      setRenamingId(null);
+      setRenameName("");
   };
 
   const handleSetStartup = (id: number, isStartup: boolean) => {
@@ -386,20 +390,51 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                   onClick={() => handleSelectPreset(preset)}
                 >
                   <div className="preset-drag-handle" style={{opacity: 0.3, marginRight: 5}}>⋮</div>
-                  <div className="preset-content">
-                    <EditableLabel 
-                        value={preset.name} 
-                        onSave={(val) => handleRenamePreset(preset.id, val)}
-                        className="preset-name-edit" 
-                    />
+
+                  <div className="preset-content-column">
+                    {renamingId === preset.id ? (
+                        <div className="rename-row" onClick={(e) => e.stopPropagation()}>
+                            <input 
+                                type="text"
+                                value={renameName} 
+                                onInput={(e) => setRenameName(e.currentTarget.value)}
+                                onKeyDown={(e) => {
+                                    if(e.key === "Enter") saveRename();
+                                    else if(e.key === "Escape") cancelRename();
+                                }}
+                                autoFocus
+                                className="rename-input"
+                            />
+                            <button className="small-btn" onClick={saveRename}>OK</button>
+                            <button className="small-btn" onClick={cancelRename}>Cancel</button>
+                        </div>
+                    ) : (
+                        <>
+                             <div 
+                                className="preset-name-row"
+                                onDblClick={(e) => { e.stopPropagation(); startRenaming(preset); }}
+                             >
+                                <span className="preset-name">{preset.name}</span>
+                                {preset.isStartup && <span className="default-badge">Defaults</span>}
+                             </div>
+                             <div className="preset-actions-row">
+                                <button className="small-btn" onClick={(e) => { e.stopPropagation(); startRenaming(preset); }}>
+                                    Rename
+                                </button>
+                                <button 
+                                    className={`small-btn ${preset.isStartup ? 'active-default' : ''}`}
+                                    onClick={(e) => { e.stopPropagation(); handleSetStartup(preset.id, !preset.isStartup); }}
+                                    title="Load this preset automatically on startup"
+                                    style={preset.isStartup ? { backgroundColor: '#e8f5e9', color: '#2e7d32', borderColor: '#c8e6c9' } : {}}
+                                >
+                                    {preset.isStartup ? "Is Default" : "Set as Default"}
+                                </button>
+                             </div>
+                        </>
+                    )}
                   </div>
                   
                   <div className="preset-actions-right">
-                    <CompactSwitch 
-                        checked={!!preset.isStartup} 
-                        onChange={(c) => handleSetStartup(preset.id, c)}
-                        title="Load on startup"
-                    />
                     <button 
                          className="icon-btn delete-btn"
                          title="Delete Preset"

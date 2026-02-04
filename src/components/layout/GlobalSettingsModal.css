@@ -101,11 +101,64 @@
   border-color: rgba(57, 108, 216, 0.2);
 }
 
-.preset-content {
+.preset-content-column {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     min-width: 0;
     margin-right: 8px;
+}
+
+.preset-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.preset-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.default-badge {
+    background: #4caf50;
+    color: white;
+    font-size: 0.65em;
+    padding: 2px 5px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.preset-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+/* Cleanup: removed text-action-btn and separator styles as we now use standard buttons */
+
+.rename-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+}
+
+.rename-input {
+    flex: 1;
+    padding: 4px 6px;
+    font-size: 0.9em;
+    border: 1px solid #396cd8;
+    border-radius: 3px;
+    outline: none;
+    min-width: 0;
 }
 
 .preset-actions-right {
