@@ -26,6 +26,32 @@ interface GlobalSettingsModalProps {
 const STORAGE_KEY = "lineo_global_presets";
 const STARTUP_KEY = "lineo_startup_preset_id";
 
+const DEFAULT_PLOT_SETTINGS: PlotSettings = {
+  title: "",
+  titleStyle: { bold: true, italic: false },
+  titleFontSize: 16,
+  xLabel: "",
+  xLabelStyle: { bold: true, italic: false },
+  yLabel: "",
+  yLabelStyle: { bold: true, italic: false },
+  xAxisLabelFontSize: 12,
+  yAxisLabelFontSize: 12,
+  xTickLabelFontSize: 10,
+  yTickLabelFontSize: 10,
+  showLegend: true,
+  hideSystemLegend: true,
+  hideSystemLegendOnExport: true,
+  legendFontSize: 12,
+  showGridX: true,
+  showGridY: true,
+  gridLineWidthX: 1,
+  gridLineWidthY: 1,
+  axisLineWidthX: 1,
+  axisLineWidthY: 1,
+  aspectRatio: 16 / 9,
+  legendPosition: { x: 100, y: 100 },
+};
+
 // --- Component ---
 
 export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings }: GlobalSettingsModalProps) {
@@ -93,12 +119,32 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     const newPreset: Preset = {
         id: newId,
         name: "New Preset",
-        settings: { ...formSettings },
+        settings: { ...DEFAULT_PLOT_SETTINGS },
         isStartup: false
     };
     const newPresets = [...presets, newPreset];
     savePresetsToStorage(newPresets);
     setActivePresetId(newId);
+    setFormSettings({ ...DEFAULT_PLOT_SETTINGS });
+    setIsFormDirty(false);
+  };
+
+  const handleDuplicatePreset = () => {
+    if (activePresetId === null) return;
+    const activePreset = presets.find(p => p.id === activePresetId);
+    if (!activePreset) return;
+
+    const newId = Date.now();
+    const newPreset: Preset = {
+        id: newId,
+        name: activePreset.name + " (Copy)",
+        settings: { ...activePreset.settings },
+        isStartup: false
+    };
+    const newPresets = [...presets, newPreset];
+    savePresetsToStorage(newPresets);
+    setActivePresetId(newId);
+    setFormSettings({ ...activePreset.settings });
     setIsFormDirty(false);
   };
 
@@ -392,7 +438,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           <div className="presets-sidebar">
             <div className="presets-header-row">
                 <span>Presets</span>
-                <span className="subtitle">Startup?</span>
             </div>
             <div className="presets-list">
               {presets.map((preset) => (
@@ -459,9 +504,17 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
               ))}
               {presets.length === 0 && <div className="empty-state">No presets saved.</div>}
             </div>
-            <div className="sidebar-footer">
-                <button className="primary-button full-width" onClick={handleAddPreset}>
-                    + Add Preset
+            <div className="sidebar-footer" style={{ display: 'flex', gap: '5px' }}>
+                <button className="primary-button" style={{ flex: 1 }} onClick={handleAddPreset}>
+                    + Add
+                </button>
+                <button 
+                    className="text-button" 
+                    style={{ flex: 1, border: '1px solid var(--point-border-color)', fontSize: '0.85em' }}
+                    onClick={handleDuplicatePreset}
+                    disabled={activePresetId === null}
+                >
+                    Duplicate
                 </button>
             </div>
           </div>
@@ -480,31 +533,58 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                 </div>
             ) : (
               <>
-              <div className="preview-toolbar">
-                  <span>
-                      {activePresetId ? "Editing Preset" : "Format Settings"}
-                      {isFormDirty && activePresetId && " (Modified)"}
-                  </span>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    {activePresetId && (
-                        <button 
-                            className="primary-button small" 
-                            disabled={!isFormDirty}
-                            onClick={handleUpdateActivePreset}
-                        >
-                            Save Changes
-                        </button>
-                    )}
-                    <button 
-                        className="small-btn" 
-                        onClick={() => {
-                            onApplySettings(formSettings);
-                            addNotification("success", "Settings applied.");
-                        }}
-                    >
-                        Apply to Current Plot
-                    </button>
+              <div className="preview-toolbar" style={{ flexDirection: 'column', height: 'auto', gap: '8px', alignItems: 'stretch' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>
+                          {activePresetId ? "Editing Preset" : "Format Settings"}
+                          {isFormDirty && activePresetId && " (Modified)"}
+                      </span>
+                      {activePresetId && (
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button 
+                                className="small-btn" 
+                                onClick={() => {
+                                    setFormSettings({ ...DEFAULT_PLOT_SETTINGS }); 
+                                    setIsFormDirty(true);
+                                }}
+                            >
+                                Reset to Defaults
+                            </button>
+                            <button 
+                                className="primary-button small" 
+                                disabled={!isFormDirty}
+                                onClick={handleUpdateActivePreset}
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                      )}
                   </div>
+                  
+                  {activePresetId && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                        <button 
+                            className="small-btn"
+                            onClick={() => {
+                                setFormSettings({ ...currentSettings });
+                                setIsFormDirty(true);
+                                addNotification("info", "Loaded settings from current plot.");
+                            }}
+                            title="Overwrite this preset with settings from the main window"
+                        >
+                            Load from Current Plot
+                        </button>
+                        <button 
+                            className="small-btn" 
+                            onClick={() => {
+                                onApplySettings(formSettings);
+                                addNotification("success", "Settings applied.");
+                            }}
+                        >
+                            Apply to Current Plot
+                        </button>
+                      </div>
+                  )}
               </div>
               <div className="settings-scroll-area">
                 <PlotSettingsForm 
