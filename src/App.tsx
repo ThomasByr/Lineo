@@ -92,6 +92,16 @@ function App() {
   useEffect(() => {
     if (editingSeriesId) {
       if (!editingOverridePushed.current) {
+        // Capture specific current view for lock
+        const currentView = plotAreaRef.current?.getCurrentView();
+        if (currentView) {
+            setLockedView({
+                xMin: currentView.x.min,
+                xMax: currentView.x.max,
+                yMin: currentView.y.min,
+                yMax: currentView.y.max
+            });
+        }
         pushViewModeOverride("locked", "edit");
         editingOverridePushed.current = true;
       }

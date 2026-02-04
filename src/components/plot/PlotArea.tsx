@@ -104,6 +104,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
     setIsExportSettingsModalOpen,
     pushViewModeOverride,
     popViewModeOverride,
+    setLockedView,
   } = useProject();
 
   const drawOverridePushed = useRef(false);
@@ -170,6 +171,15 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(({
     // when exiting, restore previous.
     if (drawMode) {
       if (!drawOverridePushed.current) {
+        if (chartRef.current) {
+            const { x, y } = chartRef.current.scales;
+            setLockedView({
+                xMin: x.min,
+                xMax: x.max,
+                yMin: y.min,
+                yMax: y.max
+            });
+        }
         pushViewModeOverride("locked", "draw");
         drawOverridePushed.current = true;
       }
