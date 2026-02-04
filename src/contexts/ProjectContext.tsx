@@ -105,7 +105,24 @@ const DEFAULT_PLOT_SETTINGS: PlotSettings = {
 export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const { addNotification } = useNotification();
   const [series, setSeriesState] = useState<Series[]>([]);
-  const [plotSettings, setPlotSettingsState] = useState<PlotSettings>(DEFAULT_PLOT_SETTINGS);
+  const [plotSettings, setPlotSettingsState] = useState<PlotSettings>(() => {
+    try {
+      const startupId = localStorage.getItem("lineo_startup_preset_id");
+      const stored = localStorage.getItem("lineo_global_presets");
+      if (startupId && stored) {
+        const presets = JSON.parse(stored);
+        const id = parseInt(startupId);
+        const preset = presets.find((p: any) => p.id === id);
+        if (preset && preset.settings) {
+          // Merge with defaults in case of new properties
+          return { ...DEFAULT_PLOT_SETTINGS, ...preset.settings };
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load startup preset", e);
+    }
+    return DEFAULT_PLOT_SETTINGS;
+  });
 
   const [autoCrop, setAutoCropState] = useState(() => {
     const saved = localStorage.getItem("autoCrop");

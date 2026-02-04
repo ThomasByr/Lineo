@@ -7,11 +7,19 @@ interface MenuBarProps {
   zoom: number;
   setZoom: (z: number) => void;
   onOpenAbout: () => void;
+  onOpenGlobalSettings: () => void;
   theme: "light" | "dark";
   setTheme: (t: "light" | "dark") => void;
 }
 
-export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBarProps) {
+export function MenuBar({
+  zoom,
+  setZoom,
+  onOpenAbout,
+  onOpenGlobalSettings,
+  theme,
+  setTheme,
+}: MenuBarProps) {
   const {
     saveProject,
     saveProjectAs,
@@ -222,6 +230,15 @@ export function MenuBar({ zoom, setZoom, onOpenAbout, theme, setTheme }: MenuBar
             </div>
           </div>
           <div className="menu-divider" role="separator"></div>
+          <div
+            className="menu-option"
+            onClick={() => handleAction(onOpenGlobalSettings)}
+            role="menuitem"
+            tabIndex={0}
+            onKeyDown={(e) => handleKeyDown(e, () => handleAction(onOpenGlobalSettings))}
+          >
+            <span>Global Settings...</span>
+          </div>
           <div
             className="menu-option"
             onClick={() => handleAction(() => setIsExportModalOpen(true))}

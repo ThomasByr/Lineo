@@ -10,6 +10,7 @@ import "./components/tabs/PlotSettings.css";
 import "./components/plot/CustomLegend.css";
 import { MenuBar } from "./components/layout/MenuBar";
 import { AboutModal } from "./components/layout/AboutModal";
+import { GlobalSettingsModal } from "./components/layout/GlobalSettingsModal";
 import { DataTab } from "./components/tabs/DataTab";
 import { SettingsTab } from "./components/tabs/SettingsTab";
 import { GlobalSettingsTab } from "./components/tabs/GlobalSettingsTab";
@@ -76,6 +77,7 @@ function App() {
   }, [appZoom]);
 
   const [showAbout, setShowAbout] = useState(false);
+  const [showGlobalSettings, setShowGlobalSettings] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"data" | "plot" | "approx" | "settings">("data");
   const [editingSeriesId, setEditingSeriesId] = useState<string | null>(null);
@@ -234,6 +236,7 @@ function App() {
           zoom={appZoom}
           setZoom={setAppZoom}
           onOpenAbout={() => setShowAbout(true)}
+          onOpenGlobalSettings={() => setShowGlobalSettings(true)}
           theme={theme}
           setTheme={setTheme}
         />
@@ -570,6 +573,18 @@ function App() {
           </div>
         </main>
         {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+        {showGlobalSettings && (
+          <GlobalSettingsModal
+            onClose={() => setShowGlobalSettings(false)}
+            currentSettings={plotSettings}
+            onApplySettings={(s) => {
+              updatePlotSettings(s);
+              // Do not auto-close, let user decide or close manually if they want to apply and keep tweaking
+              // But user request was "apply a setting preset". Usually "Apply" buttons in modals don't close, "OK" buttons do.
+              // I'll leave it open as implemented in the modal's Apply button (checking my earlier code, I did call `alert` but not `onClose`).
+            }}
+          />
+        )}
       </div>
     </div>
   );
