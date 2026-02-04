@@ -166,6 +166,18 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           isStartup: p.id === id ? isStartup : false
       }));
       savePresetsToStorage(newPresets);
+
+      if (isStartup) {
+          const preset = presets.find(p => p.id === id);
+          if (preset) {
+            onApplySettings(preset.settings);
+            // Also update local form to match, to visualize the change
+            setFormSettings({ ...preset.settings });
+            setActivePresetId(id);
+            setIsFormDirty(false);
+            addNotification("success", "Default preset applied to current plot.");
+          }
+      }
   };
 
   const handleSelectPreset = (preset: Preset) => {
@@ -455,6 +467,19 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           </div>
           
           <div className="settings-preview-area">
+            {activePresetId === null ? (
+                <div className="empty-selection-state" style={{ 
+                    flex: 1, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    color: 'var(--text-secondary)',
+                    fontStyle: 'italic'
+                }}>
+                    Select a preset to edit settings
+                </div>
+            ) : (
+              <>
               <div className="preview-toolbar">
                   <span>
                       {activePresetId ? "Editing Preset" : "Format Settings"}
@@ -470,7 +495,13 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                             Save Changes
                         </button>
                     )}
-                    <button className="small" onClick={() => onApplySettings(formSettings)}>
+                    <button 
+                        className="small-btn" 
+                        onClick={() => {
+                            onApplySettings(formSettings);
+                            addNotification("success", "Settings applied.");
+                        }}
+                    >
                         Apply to Current Plot
                     </button>
                   </div>
@@ -486,6 +517,8 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                     isModal={true}
                 />
               </div>
+              </>
+            )}
           </div>
         </div>
 
