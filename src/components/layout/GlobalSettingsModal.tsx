@@ -399,7 +399,6 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
           <div className="header-actions">
              <button onClick={openExportModal}>Export...</button>
              <button onClick={handleImportClick}>Import...</button>
-             <button className="close-button" onClick={onClose} style={{ marginLeft: '10px' }}>&times;</button>
           </div>
         </div>
         
@@ -408,12 +407,12 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
             <div className="presets-header-row">
                 <span>Presets</span>
             </div>
-            <div className="presets-list">
+            <div className="presets-list" onClick={() => setActivePresetId(null)}>
               {presets.map((preset) => (
                 <div 
                   key={preset.id} 
                   className={`preset-item ${activePresetId === preset.id ? "active" : ""}`}
-                  onClick={() => handleSelectPreset(preset)}
+                  onClick={(e) => { e.stopPropagation(); handleSelectPreset(preset); }}
                 >
                   <div className="preset-drag-handle" style={{opacity: 0.3, marginRight: 5}}>⋮</div>
 
