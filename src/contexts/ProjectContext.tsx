@@ -7,6 +7,7 @@ import { save, open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useNotification } from "./NotificationContext";
 import { isTauri, showInFolder } from "../platform";
+import { DEFAULT_PLOT_SETTINGS } from "../constants";
 
 interface HistoryAction {
   description: string;
@@ -75,32 +76,6 @@ interface ProjectContextType {
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
-
-const DEFAULT_PLOT_SETTINGS: PlotSettings = {
-  title: "",
-  titleStyle: { bold: true, italic: false },
-  titleFontSize: 16,
-  xLabel: "",
-  xLabelStyle: { bold: true, italic: false },
-  yLabel: "",
-  yLabelStyle: { bold: true, italic: false },
-  xAxisLabelFontSize: 12,
-  yAxisLabelFontSize: 12,
-  xTickLabelFontSize: 10,
-  yTickLabelFontSize: 10,
-  showLegend: true,
-  hideSystemLegend: true,
-  hideSystemLegendOnExport: true,
-  legendFontSize: 12,
-  showGridX: true,
-  showGridY: true,
-  gridLineWidthX: 1,
-  gridLineWidthY: 1,
-  axisLineWidthX: 1,
-  axisLineWidthY: 1,
-  aspectRatio: 16 / 9,
-  legendPosition: { x: 100, y: 100 },
-};
 
 export function ProjectProvider({ children }: { children: ComponentChildren }) {
   const { addNotification } = useNotification();
