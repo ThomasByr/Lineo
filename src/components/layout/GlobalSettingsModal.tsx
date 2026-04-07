@@ -556,6 +556,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
                           value={renameName}
                           onInput={(e) => setRenameName(e.currentTarget.value)}
                           onKeyDown={(e) => {
+                            e.stopPropagation();
                             if (e.key === "Enter") saveRename();
                             else if (e.key === "Escape") cancelRename();
                           }}
