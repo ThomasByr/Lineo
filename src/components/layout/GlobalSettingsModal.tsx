@@ -119,7 +119,7 @@ export function GlobalSettingsModal({ onClose, currentSettings, onApplySettings 
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [showExportModal, pendingImport, pendingDeleteId, activePresetId, renamingId, onClose]);
+  }, [showExportModal, pendingImport, pendingDeleteId, activePresetId, renamingId]);
 
   // Load Presets
   useEffect(() => {

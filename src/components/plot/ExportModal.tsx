@@ -48,7 +48,7 @@ export function ExportModal({ isOpen, onClose, onExport, globalScale }: ExportMo
       document.removeEventListener("keydown", onKey);
       prevActive.current?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   // Use focus-trap to keep tab navigation inside the modal while open
   useFocusTrap(modalRef, isOpen);
