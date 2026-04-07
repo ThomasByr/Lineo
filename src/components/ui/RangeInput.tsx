@@ -32,7 +32,7 @@ export function RangeInput({
       </label>
       <input
         type="range"
-        value={value}
+        value={value.toString()}
         onInput={(e) => {
           const val = parseFloat(e.currentTarget.value);
           if (onInput) onInput(val);
