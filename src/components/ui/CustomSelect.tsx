@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "preact/hooks";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import type { JSX } from "preact";
+import { LINE_STYLES, POINT_STYLES } from "../../styles";
 
 interface Option {
   value: string;
@@ -16,20 +17,24 @@ interface CustomSelectProps {
 }
 
 function LineStylePreview({ style, color = "#000" }: { style: string; color?: string }) {
-  const getPattern = () => {
-    switch (style) {
-      case "dashed":
-        return `repeating-linear-gradient(to right, ${color} 0px, ${color} 6px, transparent 6px, transparent 12px)`;
-      case "dotted":
-        return `repeating-linear-gradient(to right, ${color} 0px, ${color} 2px, transparent 2px, transparent 4px)`;
-      case "dashdot":
-        return `repeating-linear-gradient(to right, ${color} 0px, ${color} 8px, transparent 8px, transparent 12px, ${color} 12px, ${color} 14px, transparent 14px, transparent 18px)`;
-      case "longdash":
-        return `repeating-linear-gradient(to right, ${color} 0px, ${color} 10px, transparent 10px, transparent 20px)`;
-      default: // solid
-        return color;
-    }
-  };
+  const def = LINE_STYLES[style];
+  if (!def) {
+    // Fallback for unknown styles
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div
+          style={{
+            width: "40px",
+            height: "3px",
+            backgroundColor: color,
+            borderRadius: "1px",
+          }}
+        />
+      </div>
+    );
+  }
+
+  const pattern = def.cssPattern?.replace(/{color}/g, color) || color;
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -37,7 +42,7 @@ function LineStylePreview({ style, color = "#000" }: { style: string; color?: st
         style={{
           width: "40px",
           height: "3px",
-          background: getPattern(),
+          background: pattern,
           borderRadius: "1px",
         }}
       />
@@ -50,66 +55,68 @@ function PointStylePreview({ type, color = "#000" }: { type: string; color?: str
   const borderColor = "var(--point-border-color)";
   const border = `1px solid ${borderColor}`;
 
-  switch (type) {
-    case "circle":
-      return <div style={{ width: size, height: size, background: color, borderRadius: "50%", border }} />;
-    case "rect":
-      return <div style={{ width: size, height: size, background: color, border }} />;
-    case "rectRounded":
-      return <div style={{ width: size, height: size, background: color, borderRadius: "20%", border }} />;
-    case "rectRot":
-      return <div style={{ width: size, height: size, background: color, transform: "rotate(45deg)", border }} />;
-    case "triangle":
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
-          <path d="M12 2L22 22H2z" fill={color} stroke={borderColor} strokeWidth="1" />
-        </svg>
-      );
-    case "cross":
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
-          <path d="M4 12H20M12 4V20" stroke={color} strokeWidth="3" />
-        </svg>
-      );
-    case "crossRot":
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
-          <path d="M5 5L19 19M19 5L5 19" stroke={color} strokeWidth="3" />
-        </svg>
-      );
-    case "star":
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
-          <path d="M12 2L15 9H22L16 13L18 20L12 16L6 20L8 13L2 9H9L12 2Z" fill={color} stroke={borderColor} strokeWidth="1" />
-        </svg>
-      );
-    case "line":
-      // Chart.js 'line' is a horizontal line - we'll show it as long dash for clarity
-      return (
-        <div
-          style={{
-            width: size,
-            height: "2px",
-            background: `repeating-linear-gradient(to right, ${color} 0px, ${color} 10px, transparent 10px, transparent 20px)`,
-            marginTop: "6px",
-          }}
-        />
-      );
-    case "dash":
-      // Chart.js 'dash' is a short dash
-      return (
-        <div
-          style={{
-            width: size,
-            height: "2px",
-            background: `repeating-linear-gradient(to right, ${color} 0px, ${color} 4px, transparent 4px, transparent 8px)`,
-            marginTop: "6px",
-          }}
-        />
-      );
-    default:
-      return <div style={{ width: size, height: size, background: color, borderRadius: "50%", border }} />;
+  const def = POINT_STYLES[type];
+
+  // For line and dash, render as horizontal lines with patterns
+  if (type === "line" || type === "dash") {
+    const pattern =
+      type === "line"
+        ? `repeating-linear-gradient(to right, ${color} 0px, ${color} 10px, transparent 10px, transparent 20px)`
+        : `repeating-linear-gradient(to right, ${color} 0px, ${color} 4px, transparent 4px, transparent 8px)`;
+    return (
+      <div
+        style={{
+          width: size,
+          height: "2px",
+          background: pattern,
+          marginTop: "6px",
+        }}
+      />
+    );
   }
+
+  // For circle, use div with border-radius
+  if (type === "circle") {
+    return <div style={{ width: size, height: size, background: color, borderRadius: "50%", border }} />;
+  }
+
+  // For rect, use div without border-radius
+  if (type === "rect") {
+    return <div style={{ width: size, height: size, background: color, border }} />;
+  }
+
+  // For rectRounded, use div with small border-radius
+  if (type === "rectRounded") {
+    return <div style={{ width: size, height: size, background: color, borderRadius: "20%", border }} />;
+  }
+
+  // For rectRot, use div with rotation
+  if (type === "rectRot") {
+    return (
+      <div style={{ width: size, height: size, background: color, transform: "rotate(45deg)", border }} />
+    );
+  }
+
+  // For cross and crossRot, use SVG with stroke
+  if (type === "cross" || type === "crossRot") {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
+        <path d={def?.svgPath || ""} stroke={color} strokeWidth="3" />
+      </svg>
+    );
+  }
+
+  // For all other types (triangle, star), use SVG with fill and stroke
+  if (def) {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
+        <path d={def.svgPath} fill={color} stroke={borderColor} strokeWidth="1" />
+      </svg>
+    );
+  }
+
+  // Fallback
+  return <div style={{ width: size, height: size, background: color, borderRadius: "50%", border }} />;
 }
 
 export function CustomSelect({ value, options, onChange, className = "" }: CustomSelectProps) {
@@ -186,7 +193,12 @@ export function CustomSelect({ value, options, onChange, className = "" }: Custo
         </span>
       </div>
       {isOpen && (
-        <div id={optionsId} className="custom-select-options" role="listbox" aria-labelledby={`${optionsId}-trigger`}>
+        <div
+          id={optionsId}
+          className="custom-select-options"
+          role="listbox"
+          aria-labelledby={`${optionsId}-trigger`}
+        >
           {options.map((option, idx) => (
             <div
               id={`${optionsId}-option-${option.value}`}
@@ -230,23 +242,16 @@ export function CustomSelect({ value, options, onChange, className = "" }: Custo
   );
 }
 
-export const getPointStyleOptions = (color: string): Option[] => [
-  { value: "circle", label: "Circle", preview: <PointStylePreview type="circle" color={color} /> },
-  { value: "rect", label: "Square", preview: <PointStylePreview type="rect" color={color} /> },
-  { value: "rectRounded", label: "Rounded Square", preview: <PointStylePreview type="rectRounded" color={color} /> },
-  { value: "rectRot", label: "Diamond", preview: <PointStylePreview type="rectRot" color={color} /> },
-  { value: "triangle", label: "Triangle", preview: <PointStylePreview type="triangle" color={color} /> },
-  { value: "cross", label: "Cross", preview: <PointStylePreview type="cross" color={color} /> },
-  { value: "crossRot", label: "X (Rotated)", preview: <PointStylePreview type="crossRot" color={color} /> },
-  { value: "star", label: "Star", preview: <PointStylePreview type="star" color={color} /> },
-  { value: "line", label: "Long Dash", preview: <PointStylePreview type="line" color={color} /> },
-  { value: "dash", label: "Dash", preview: <PointStylePreview type="dash" color={color} /> },
-];
+export const getPointStyleOptions = (color: string): Option[] =>
+  Object.entries(POINT_STYLES).map(([value, def]) => ({
+    value,
+    label: def.label,
+    preview: <PointStylePreview type={value} color={color} />,
+  }));
 
-export const getLineStyleOptions = (color: string): Option[] => [
-  { value: "solid", label: "Solid", preview: <LineStylePreview style="solid" color={color} /> },
-  { value: "dashed", label: "Dashed", preview: <LineStylePreview style="dashed" color={color} /> },
-  { value: "dotted", label: "Dotted", preview: <LineStylePreview style="dotted" color={color} /> },
-  { value: "dashdot", label: "Dash-Dot", preview: <LineStylePreview style="dashdot" color={color} /> },
-  { value: "longdash", label: "Long Dash", preview: <LineStylePreview style="longdash" color={color} /> },
-];
+export const getLineStyleOptions = (color: string): Option[] =>
+  Object.entries(LINE_STYLES).map(([value, def]) => ({
+    value,
+    label: def.label,
+    preview: <LineStylePreview style={value} color={color} />,
+  }));

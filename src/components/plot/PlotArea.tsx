@@ -23,6 +23,7 @@ import { useResizeObserver } from "../../hooks/useResizeObserver";
 import { CustomLegend } from "./CustomLegend";
 import { ExportSettingsModal } from "./ExportSettingsModal";
 import { ExportModal } from "./ExportModal";
+import { getCachedPointStyleImage, getLineBorderDash } from "../../styles";
 
 ChartJS.register(
   LinearScale,
@@ -50,29 +51,6 @@ interface PlotAreaProps {
 
 export interface PlotAreaHandle {
   getCurrentView: () => { x: { min: number; max: number }; y: { min: number; max: number } } | null;
-}
-
-// Helper function to create SVG data URL for custom point styles
-function createPointStyleSvg(color: string, size: number = 16): HTMLImageElement {
-  const svg = `
-    <svg width="${size}" height="${size}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 2L15 9H22L16 13L18 20L12 16L6 20L8 13L2 9H9L12 2Z" fill="${color}" stroke="white" stroke-width="1"/>
-    </svg>
-  `;
-  const img = new Image();
-  img.src = `data:image/svg+xml,${encodeURIComponent(svg)}`;
-  return img;
-}
-
-// Cache for star images to avoid creating duplicates
-const starImageCache: Map<string, HTMLImageElement> = new Map();
-
-function getStarPointStyle(color: string): HTMLImageElement {
-  if (!starImageCache.has(color)) {
-    const img = createPointStyleSvg(color);
-    starImageCache.set(color, img);
-  }
-  return starImageCache.get(color)!;
 }
 
 export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
@@ -691,19 +669,11 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
         backgroundColor: s.color,
         borderColor: s.color,
         borderWidth: s.width,
-        borderDash: s.lineStyle === "dashed"
-          ? [5, 5]
-          : s.lineStyle === "dotted"
-            ? [2, 2]
-            : s.lineStyle === "dashdot"
-              ? [8, 4, 2, 4]
-              : s.lineStyle === "longdash"
-                ? [10, 5]
-                : [],
+        borderDash: getLineBorderDash(s.lineStyle),
         showLine: s.showLine,
         type: "scatter" as const,
         pointRadius: s.pointSize,
-        pointStyle: s.pointStyle === "star" ? getStarPointStyle(s.color) : s.pointStyle,
+        pointStyle: s.pointStyle === "star" ? getCachedPointStyleImage(s.color, "star") : s.pointStyle,
         hidden: isHidden,
         seriesId: s.id,
       } as any);
@@ -714,16 +684,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
           data: s.regressionPoints,
           borderColor: s.regression.color,
           borderWidth: s.regression.width,
-          borderDash:
-            s.regression.style === "dashed"
-              ? [5, 5]
-              : s.regression.style === "dotted"
-                ? [2, 2]
-                : s.regression.style === "dashdot"
-                  ? [8, 4, 2, 4]
-                  : s.regression.style === "longdash"
-                    ? [10, 5]
-                    : [],
+          borderDash: getLineBorderDash(s.regression.style),
           showLine: true,
           pointRadius: 0,
           type: "scatter" as const,
