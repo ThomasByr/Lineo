@@ -2,12 +2,12 @@ import { PlotSettings } from "./types";
 
 export const DEFAULT_PLOT_SETTINGS: PlotSettings = {
   title: "",
-  titleStyle: { bold: true, italic: false },
+  titleStyle: { bold: true, italic: false, color: "#000000" },
   titleFontSize: 16,
   xLabel: "",
-  xLabelStyle: { bold: true, italic: false },
+  xLabelStyle: { bold: true, italic: false, color: "#000000" },
   yLabel: "",
-  yLabelStyle: { bold: true, italic: false },
+  yLabelStyle: { bold: true, italic: false, color: "#000000" },
   xAxisLabelFontSize: 12,
   yAxisLabelFontSize: 12,
   xTickLabelFontSize: 10,

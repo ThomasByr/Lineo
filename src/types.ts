@@ -56,6 +56,7 @@ export interface Series {
 export interface TextStyle {
   bold: boolean;
   italic: boolean;
+  color?: string;
 }
 
 export interface PlotSettings {

@@ -853,6 +853,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
               weight: plotSettings?.xLabelStyle?.bold ? "bold" : "normal",
               style: plotSettings?.xLabelStyle?.italic ? "italic" : "normal",
             },
+            color: plotSettings?.xLabelStyle?.color || "#000000",
           },
           ticks: {
             font: {
@@ -880,6 +881,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
               weight: plotSettings?.yLabelStyle?.bold ? "bold" : "normal",
               style: plotSettings?.yLabelStyle?.italic ? "italic" : "normal",
             },
+            color: plotSettings?.yLabelStyle?.color || "#000000",
           },
           ticks: {
             font: {
@@ -907,6 +909,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
             weight: plotSettings?.titleStyle?.bold ? "bold" : "normal",
             style: plotSettings?.titleStyle?.italic ? "italic" : "normal",
           },
+          color: plotSettings?.titleStyle?.color || "#000000",
         },
         legend: {
           display: !plotSettings?.hideSystemLegend,

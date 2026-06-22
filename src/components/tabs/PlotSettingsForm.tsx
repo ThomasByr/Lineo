@@ -3,6 +3,7 @@ import { PlotSettings, ViewMode, TextStyle } from "../../types";
 import { NumberInput } from "../ui/NumberInput";
 import { Toggle } from "../ui/Toggle";
 import { CustomSelect } from "../ui/CustomSelect";
+import { ColorInput } from "../ui/ColorInput";
 
 function TextStyleControls({ style, onChange }: { style: TextStyle; onChange: (s: TextStyle) => void }) {
   const btnStyle = (active: boolean) => ({
@@ -38,6 +39,7 @@ function TextStyleControls({ style, onChange }: { style: TextStyle; onChange: (s
       >
         I
       </button>
+      <ColorInput value={style.color || "#000000"} onChange={(color) => onChange({ ...style, color })} />
     </div>
   );
 }
