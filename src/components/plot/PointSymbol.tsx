@@ -38,6 +38,12 @@ export function PointSymbol({ type, color, size }: { type: string; color: string
           <path d="M5 5L19 19M19 5L5 19" stroke={color} strokeWidth="3" />
         </svg>
       );
+    case "star":
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
+          <path d="M12 2L15 9H22L16 13L18 20L12 16L6 20L8 13L2 9H9L12 2Z" fill={color} stroke={borderColor} strokeWidth="1" />
+        </svg>
+      );
     case "dash":
     case "line":
       return (

@@ -52,6 +52,29 @@ export interface PlotAreaHandle {
   getCurrentView: () => { x: { min: number; max: number }; y: { min: number; max: number } } | null;
 }
 
+// Helper function to create SVG data URL for custom point styles
+function createPointStyleSvg(color: string, size: number = 16): HTMLImageElement {
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2L15 9H22L16 13L18 20L12 16L6 20L8 13L2 9H9L12 2Z" fill="${color}" stroke="white" stroke-width="1"/>
+    </svg>
+  `;
+  const img = new Image();
+  img.src = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  return img;
+}
+
+// Cache for star images to avoid creating duplicates
+const starImageCache: Map<string, HTMLImageElement> = new Map();
+
+function getStarPointStyle(color: string): HTMLImageElement {
+  if (!starImageCache.has(color)) {
+    const img = createPointStyleSvg(color);
+    starImageCache.set(color, img);
+  }
+  return starImageCache.get(color)!;
+}
+
 export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
   (
     {
@@ -680,7 +703,7 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
         showLine: s.showLine,
         type: "scatter" as const,
         pointRadius: s.pointSize,
-        pointStyle: s.pointStyle,
+        pointStyle: s.pointStyle === "star" ? getStarPointStyle(s.color) : s.pointStyle,
         hidden: isHidden,
         seriesId: s.id,
       } as any);

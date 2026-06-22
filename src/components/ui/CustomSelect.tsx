@@ -77,6 +77,12 @@ function PointStylePreview({ type, color = "#000" }: { type: string; color?: str
           <path d="M5 5L19 19M19 5L5 19" stroke={color} strokeWidth="3" />
         </svg>
       );
+    case "star":
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
+          <path d="M12 2L15 9H22L16 13L18 20L12 16L6 20L8 13L2 9H9L12 2Z" fill={color} stroke={borderColor} strokeWidth="1" />
+        </svg>
+      );
     case "line":
       // Chart.js 'line' is a horizontal line - we'll show it as long dash for clarity
       return (
@@ -232,6 +238,7 @@ export const getPointStyleOptions = (color: string): Option[] => [
   { value: "triangle", label: "Triangle", preview: <PointStylePreview type="triangle" color={color} /> },
   { value: "cross", label: "Cross", preview: <PointStylePreview type="cross" color={color} /> },
   { value: "crossRot", label: "X (Rotated)", preview: <PointStylePreview type="crossRot" color={color} /> },
+  { value: "star", label: "Star", preview: <PointStylePreview type="star" color={color} /> },
   { value: "line", label: "Long Dash", preview: <PointStylePreview type="line" color={color} /> },
   { value: "dash", label: "Dash", preview: <PointStylePreview type="dash" color={color} /> },
 ];

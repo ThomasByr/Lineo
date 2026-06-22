@@ -47,7 +47,7 @@ export interface Series {
   showLine: boolean;
   lineStyle: "solid" | "dashed" | "dotted" | "dashdot" | "longdash";
   pointSize: number;
-  pointStyle: "circle" | "rect" | "triangle" | "cross" | "rectRounded" | "rectRot" | "crossRot" | "line" | "dash";
+  pointStyle: "circle" | "rect" | "triangle" | "cross" | "star" | "rectRounded" | "rectRot" | "crossRot" | "line" | "dash";
   // Regression/Approximation
   regression: RegressionSettings;
   regressionPoints: DataPoint[]; // Calculated points
