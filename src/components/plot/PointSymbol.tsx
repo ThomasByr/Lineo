@@ -26,17 +26,6 @@ export function PointSymbol({ type, color, size }: { type: string; color: string
           <path d="M12 2L22 22H2z" fill={color} stroke={borderColor} strokeWidth="1" />
         </svg>
       );
-    case "star":
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
-          <path
-            d="M12 2L15 9H22L16 13L18 20L12 16L6 20L8 13L2 9H9L12 2Z"
-            fill={color}
-            stroke={borderColor}
-            strokeWidth="1"
-          />
-        </svg>
-      );
     case "cross":
       return (
         <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>

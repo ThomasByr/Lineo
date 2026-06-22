@@ -668,7 +668,15 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
         backgroundColor: s.color,
         borderColor: s.color,
         borderWidth: s.width,
-        borderDash: s.lineStyle === "dashed" ? [5, 5] : s.lineStyle === "dotted" ? [2, 2] : [],
+        borderDash: s.lineStyle === "dashed"
+          ? [5, 5]
+          : s.lineStyle === "dotted"
+            ? [2, 2]
+            : s.lineStyle === "dashdot"
+              ? [8, 4, 2, 4]
+              : s.lineStyle === "longdash"
+                ? [10, 5]
+                : [],
         showLine: s.showLine,
         type: "scatter" as const,
         pointRadius: s.pointSize,
@@ -684,7 +692,15 @@ export const PlotArea = forwardRef<PlotAreaHandle, PlotAreaProps>(
           borderColor: s.regression.color,
           borderWidth: s.regression.width,
           borderDash:
-            s.regression.style === "dashed" ? [5, 5] : s.regression.style === "dotted" ? [2, 2] : [],
+            s.regression.style === "dashed"
+              ? [5, 5]
+              : s.regression.style === "dotted"
+                ? [2, 2]
+                : s.regression.style === "dashdot"
+                  ? [8, 4, 2, 4]
+                  : s.regression.style === "longdash"
+                    ? [10, 5]
+                    : [],
           showLine: true,
           pointRadius: 0,
           type: "scatter" as const,

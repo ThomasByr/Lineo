@@ -1,6 +1,6 @@
 import { Series } from "../../types";
 import { Toggle } from "../ui/Toggle";
-import { CustomSelect } from "../ui/CustomSelect";
+import { CustomSelect, getPointStyleOptions, getLineStyleOptions } from "../ui/CustomSelect";
 import { ColorInput } from "../ui/ColorInput";
 import { RangeInput } from "../ui/RangeInput";
 
@@ -41,13 +41,7 @@ export function SettingsTab({ series, updateSeries, startTransaction, commitTran
             <CustomSelect
               value={s.pointStyle}
               onChange={(val) => updateSeries(s.id, { pointStyle: val as any })}
-              options={[
-                { value: "circle", label: "Circle" },
-                { value: "rect", label: "Rectangle" },
-                { value: "triangle", label: "Triangle" },
-                { value: "cross", label: "Cross" },
-                { value: "star", label: "Star" },
-              ]}
+              options={getPointStyleOptions(s.color)}
             />
           </div>
 
@@ -82,11 +76,7 @@ export function SettingsTab({ series, updateSeries, startTransaction, commitTran
                 <CustomSelect
                   value={s.lineStyle || "solid"}
                   onChange={(val) => updateSeries(s.id, { lineStyle: val as any })}
-                  options={[
-                    { value: "solid", label: "Solid" },
-                    { value: "dashed", label: "Dashed" },
-                    { value: "dotted", label: "Dotted" },
-                  ]}
+                  options={getLineStyleOptions(s.color)}
                 />
               </div>
             </>

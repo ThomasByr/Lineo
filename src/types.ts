@@ -29,7 +29,7 @@ export interface RegressionSettings {
   color: string;
   syncColor?: boolean;
   width: number;
-  style: "solid" | "dashed" | "dotted";
+  style: "solid" | "dashed" | "dotted" | "dashdot" | "longdash";
 
   mode: "auto" | "manual";
   parameters?: Record<string, ManualParameter>;
@@ -45,9 +45,9 @@ export interface Series {
   color: string;
   width: number;
   showLine: boolean;
-  lineStyle: "solid" | "dashed" | "dotted";
+  lineStyle: "solid" | "dashed" | "dotted" | "dashdot" | "longdash";
   pointSize: number;
-  pointStyle: "circle" | "rect" | "triangle" | "cross" | "star";
+  pointStyle: "circle" | "rect" | "triangle" | "cross" | "rectRounded" | "rectRot" | "crossRot" | "line" | "dash";
   // Regression/Approximation
   regression: RegressionSettings;
   regressionPoints: DataPoint[]; // Calculated points

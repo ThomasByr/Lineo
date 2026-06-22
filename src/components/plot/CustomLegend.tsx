@@ -60,7 +60,15 @@ export function CustomLegend({ series, position, isDragging, onMouseDown, settin
                       height: 0,
                       borderTopWidth: `${Math.max(1, s.width)}px`,
                       borderTopStyle:
-                        s.lineStyle === "solid" ? "solid" : s.lineStyle === "dashed" ? "dashed" : "dotted",
+                        s.lineStyle === "solid"
+                          ? "solid"
+                          : s.lineStyle === "dashed"
+                            ? "dashed"
+                            : s.lineStyle === "dotted"
+                              ? "dotted"
+                              : s.lineStyle === "dashdot"
+                                ? "dashed"
+                                : "solid",
                       borderTopColor: s.color,
                       marginTop: `-${Math.max(1, s.width) / 2}px`,
                       zIndex: 0,
@@ -81,7 +89,13 @@ export function CustomLegend({ series, position, isDragging, onMouseDown, settin
                           ? "solid"
                           : s.regression.style === "dashed"
                             ? "dashed"
-                            : "dotted",
+                            : s.regression.style === "dotted"
+                              ? "dotted"
+                              : s.regression.style === "dashdot"
+                                ? "dashed"
+                                : s.regression.style === "longdash"
+                                  ? "dashed"
+                                  : "solid",
                       borderTopColor: s.regression.color,
                       marginTop: `-${Math.max(1, s.regression.width) / 2}px`,
                       zIndex: 0,

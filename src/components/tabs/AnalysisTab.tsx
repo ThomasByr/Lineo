@@ -1,7 +1,7 @@
 import { Series, RegressionType, ManualParameter } from "../../types";
 import { calculateRegressionDetails, getAutoParameters } from "../../regressionHelper";
 import { Toggle } from "../ui/Toggle";
-import { CustomSelect } from "../ui/CustomSelect";
+import { CustomSelect, getLineStyleOptions } from "../ui/CustomSelect";
 import { NumberInput } from "../ui/NumberInput";
 import { RangeInput } from "../ui/RangeInput";
 import { useNotification } from "../../contexts/NotificationContext";
@@ -351,11 +351,7 @@ export function AnalysisTab({
                       regression: { ...s.regression, style: val as any },
                     })
                   }
-                  options={[
-                    { value: "solid", label: "Solid" },
-                    { value: "dashed", label: "Dashed" },
-                    { value: "dotted", label: "Dotted" },
-                  ]}
+                  options={getLineStyleOptions(s.regression.color)}
                 />
               </div>
             </>
