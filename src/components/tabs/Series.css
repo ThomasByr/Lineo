@@ -56,10 +56,83 @@
   gap: 8px;
   padding: 12px 0;
   border-bottom: 1px solid #eee;
+  position: relative;
+  transition: all 0.2s ease;
 }
 
 :root.dark .series-list-item {
   border-bottom-color: #444;
+}
+
+.series-list-item.dragging {
+  opacity: 0.5;
+  background-color: rgba(135, 155, 255, 0.1);
+}
+
+.series-list-item.drag-over {
+  border-bottom: 2px solid #396cd8;
+}
+
+.series-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.series-info-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drag-handle {
+  color: #888;
+  cursor: grab;
+  user-select: none;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.drag-handle:hover {
+  color: #555;
+}
+
+:root.dark .drag-handle {
+  color: #777;
+}
+
+:root.dark .drag-handle:hover {
+  color: #ccc;
+}
+
+/* Drag placeholder styles */
+.drag-placeholder {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #396cd8;
+  z-index: 10;
+}
+
+.drag-placeholder.before {
+  top: 0;
+}
+
+.drag-placeholder.after {
+  bottom: 0;
+}
+
+/* When dragging, show the placeholder for the dragged item */
+.series-list-item[data-dragging="true"] .drag-placeholder {
+  display: none;
 }
 
 .rename-input {

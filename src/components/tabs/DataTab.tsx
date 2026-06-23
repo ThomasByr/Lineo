@@ -27,6 +27,8 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
 
   // Drag and drop state for reordering series
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [dropPosition, setDropPosition] = useState<"before" | "after" | null>(null);
 
   // CSV State
   const [csvPath, setCsvPath] = useState<FileResult | null>(null);
@@ -94,13 +96,36 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
   // Drag and drop handlers for reordering series
   const handleDragStart = (index: number, e: any) => {
     setDraggedIndex(index);
+    setDragOverIndex(null);
+    setDropPosition(null);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", index.toString());
+    // Add a small delay to allow the drag image to be set properly
+    setTimeout(() => {
+      e.target.classList.add("dragging-active");
+    }, 0);
   };
 
-  const handleDragOver = (e: any) => {
+  const handleDragOver = (index: number, e: any) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+    
+    // Don't show placeholder for the dragged item itself
+    if (draggedIndex === index) return;
+    
+    setDragOverIndex(index);
+    
+    // Determine if we're dropping before or after this item
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midPoint = rect.top + rect.height / 2;
+    const cursorY = e.clientY;
+    
+    setDropPosition(cursorY < midPoint ? "before" : "after");
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+    setDropPosition(null);
   };
 
   const handleDrop = (index: number, e: any) => {
@@ -110,14 +135,30 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
     // Reorder the series array
     const newSeries = [...series];
     const [removed] = newSeries.splice(draggedIndex, 1);
-    newSeries.splice(index, 0, removed);
+    
+    // Use dropPosition to determine where to insert
+    let targetIndex = index;
+    if (dropPosition === "before") {
+      targetIndex = index;
+    } else if (dropPosition === "after") {
+      targetIndex = index + 1;
+    } else {
+      // Default behavior: drop at the current index
+      targetIndex = index;
+    }
+    
+    newSeries.splice(targetIndex, 0, removed);
 
     setSeries(newSeries, "Reordered series");
     setDraggedIndex(null);
+    setDragOverIndex(null);
+    setDropPosition(null);
   };
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
+    setDragOverIndex(null);
+    setDropPosition(null);
   };
 
   const selectCsvFile = async () => {
@@ -254,94 +295,98 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
               key={s.id}
               draggable
               onDragStart={(e) => handleDragStart(index, e)}
-              onDragOver={handleDragOver}
+              onDragOver={(e) => handleDragOver(index, e)}
+              onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(index, e)}
               onDragEnd={handleDragEnd}
-              style={{
-                padding: "8px 12px",
-                marginBottom: "4px",
-                backgroundColor: "var(--bg-color)",
-                borderRadius: "6px",
-                cursor: draggedIndex === index ? "grabbing" : "grab",
-                opacity: draggedIndex === index ? 0.5 : 1,
-              }}
+              className={`series-list-item ${
+                draggedIndex === index ? "dragging" : ""
+              } ${
+                dragOverIndex === index ? "drag-over" : ""
+              }`}
+              data-index={index}
             >
-              {renamingId === s.id ? (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "5px",
-                    alignItems: "center",
-                    width: "100%",
-                  }}
-                >
-                  <span style={{ width: "24px" }} />
-                  <input
-                    type="text"
-                    value={renameName}
-                    onInput={(e) => setRenameName(e.currentTarget.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") saveRename();
-                      else if (e.key === "Escape") cancelRename();
-                    }}
-                    className="rename-input"
-                    autoFocus
-                  />
-                  <button onClick={saveRename} className="small-btn">
-                    OK
-                  </button>
-                  <button onClick={cancelRename} className="small-btn">
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <>
+              <div className="series-content-wrapper">
+                {renamingId === s.id ? (
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
+                      gap: "5px",
                       alignItems: "center",
+                      width: "100%",
                     }}
                   >
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        fontWeight: 500,
-                        fontSize: "1.05em",
-                        cursor: "pointer",
-                      }}
-                      onDblClick={() => startRenaming(s)}
+                    <span className="drag-handle" title="Drag to reorder" style={{ cursor: "grab", userSelect: "none" }}>☰</span>
+                    <input
+                      type="text"
+                      value={renameName}
+                      onInput={(e) => setRenameName(e.currentTarget.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") startRenaming(s);
+                        if (e.key === "Enter") saveRename();
+                        else if (e.key === "Escape") cancelRename();
                       }}
-                      title={`Rename series (Enter or double-click)`}
-                      aria-label={`Rename series ${s.name}`}
-                    >
-                      <span className="drag-handle" title="Drag to reorder" style={{ cursor: "grab", userSelect: "none" }}>☰</span>
-                      {s.name}
-                    </span>
-                    <span className="series-count">{s.data.length} pts</span>
-                  </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <button onClick={() => startRenaming(s)} className="small-btn" style={{ flex: 1 }}>
-                      Rename
+                      className="rename-input"
+                      autoFocus
+                    />
+                    <button onClick={saveRename} className="small-btn">
+                      OK
                     </button>
-                    <button onClick={() => startEditing(s)} className="small-btn" style={{ flex: 1 }}>
-                      Edit Data
-                    </button>
-                    <button
-                      onClick={() => handleRemoveSeries(s.id)}
-                      className="small-btn remove-btn"
-                      title={`Remove series ${s.name}`}
-                      aria-label={`Remove series ${s.name}`}
-                      style={{ flex: 0 }}
-                    >
-                      ✕
+                    <button onClick={cancelRename} className="small-btn">
+                      Cancel
                     </button>
                   </div>
-                </>
+                ) : (
+                  <>
+                    <span className="drag-handle" title="Drag to reorder" style={{ cursor: "grab", userSelect: "none" }}>☰</span>
+                    <div className="series-info-wrapper">
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          width: "100%",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontWeight: 500,
+                            fontSize: "1.05em",
+                            cursor: "pointer",
+                          }}
+                          onDblClick={() => startRenaming(s)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") startRenaming(s);
+                          }}
+                          title={`Rename series (Enter or double-click)`}
+                          aria-label={`Rename series ${s.name}`}
+                        >
+                          {s.name}
+                        </span>
+                        <span className="series-count">{s.data.length} pts</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button onClick={() => startRenaming(s)} className="small-btn" style={{ flex: 1 }}>
+                          Rename
+                        </button>
+                        <button onClick={() => startEditing(s)} className="small-btn" style={{ flex: 1 }}>
+                          Edit Data
+                        </button>
+                        <button
+                          onClick={() => handleRemoveSeries(s.id)}
+                          className="small-btn remove-btn"
+                          title={`Remove series ${s.name}`}
+                          aria-label={`Remove series ${s.name}`}
+                          style={{ flex: 0 }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              {dragOverIndex === index && (
+                <div className={`drag-placeholder ${dropPosition === "before" ? "before" : "after"}`} />
               )}
             </li>
           ))}
