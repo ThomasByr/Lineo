@@ -16,7 +16,7 @@ interface DataTabProps {
   removeSeries: (id: string) => void;
 }
 
-export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: DataTabProps) {
+export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSeries }: DataTabProps) {
   const { addNotification } = useNotification();
   const [activeTab, setActiveTab] = useState<"csv" | "excel" | "manual">("manual");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -24,6 +24,9 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState("");
+
+  // Drag and drop state for reordering series
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // CSV State
   const [csvPath, setCsvPath] = useState<FileResult | null>(null);
@@ -86,6 +89,35 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
   const cancelRename = () => {
     setRenamingId(null);
     setRenameName("");
+  };
+
+  // Drag and drop handlers for reordering series
+  const handleDragStart = (index: number, e: any) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleDragOver = (e: any) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (index: number, e: any) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    // Reorder the series array
+    const newSeries = [...series];
+    const [removed] = newSeries.splice(draggedIndex, 1);
+    newSeries.splice(index, 0, removed);
+
+    setSeries(newSeries, "Reordered series");
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   const selectCsvFile = async () => {
@@ -216,9 +248,24 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
       <div className="series-list">
         <h3>Loaded Series</h3>
         {series.length === 0 && <p>No data loaded.</p>}
-        <ul className="series-list-ul">
-          {series.map((s) => (
-            <li key={s.id} className="series-list-item">
+        <ul className="series-list-ul" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {series.map((s, index) => (
+            <li
+              key={s.id}
+              draggable
+              onDragStart={(e) => handleDragStart(index, e)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(index, e)}
+              onDragEnd={handleDragEnd}
+              style={{
+                padding: "8px 12px",
+                marginBottom: "4px",
+                backgroundColor: "var(--bg-color)",
+                borderRadius: "6px",
+                cursor: draggedIndex === index ? "grabbing" : "grab",
+                opacity: draggedIndex === index ? 0.5 : 1,
+              }}
+            >
               {renamingId === s.id ? (
                 <div
                   style={{
@@ -228,6 +275,7 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
                     width: "100%",
                   }}
                 >
+                  <span style={{ width: "24px" }} />
                   <input
                     type="text"
                     value={renameName}
@@ -256,16 +304,22 @@ export function DataTab({ series, updateSeries, onAddSeries, removeSeries }: Dat
                     }}
                   >
                     <span
-                      role="button"
-                      tabIndex={0}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontWeight: 500,
+                        fontSize: "1.05em",
+                        cursor: "pointer",
+                      }}
                       onDblClick={() => startRenaming(s)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") startRenaming(s);
                       }}
                       title={`Rename series (Enter or double-click)`}
                       aria-label={`Rename series ${s.name}`}
-                      style={{ fontWeight: 500, fontSize: "1.05em", cursor: "pointer" }}
                     >
+                      <span className="drag-handle" title="Drag to reorder" style={{ cursor: "grab", userSelect: "none" }}>☰</span>
                       {s.name}
                     </span>
                     <span className="series-count">{s.data.length} pts</span>

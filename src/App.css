@@ -319,3 +319,28 @@ h1 {
   padding: 6px 12px;
   width: auto; /* Allow growth */
 }
+
+/* Drag and drop styles for series reordering */
+.drag-handle {
+  color: #888;
+  cursor: grab;
+  user-select: none;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.drag-handle:hover {
+  color: #555;
+}
+
+:root.dark .drag-handle {
+  color: #777;
+}
+
+:root.dark .drag-handle:hover {
+  color: #ccc;
+}
