@@ -109,17 +109,17 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
   const handleDragOver = (index: number, e: any) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    
+
     // Don't show placeholder for the dragged item itself
     if (draggedIndex === index) return;
-    
+
     setDragOverIndex(index);
-    
+
     // Determine if we're dropping before or after this item
     const rect = e.currentTarget.getBoundingClientRect();
     const midPoint = rect.top + rect.height / 2;
     const cursorY = e.clientY;
-    
+
     setDropPosition(cursorY < midPoint ? "before" : "after");
   };
 
@@ -135,7 +135,7 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
     // Reorder the series array
     const newSeries = [...series];
     const [removed] = newSeries.splice(draggedIndex, 1);
-    
+
     // Use dropPosition to determine where to insert
     let targetIndex = index;
     if (dropPosition === "before") {
@@ -146,7 +146,7 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
       // Default behavior: drop at the current index
       targetIndex = index;
     }
-    
+
     newSeries.splice(targetIndex, 0, removed);
 
     setSeries(newSeries, "Reordered series");
@@ -299,9 +299,7 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(index, e)}
               onDragEnd={handleDragEnd}
-              className={`series-list-item ${
-                draggedIndex === index ? "dragging" : ""
-              } ${
+              className={`series-list-item ${draggedIndex === index ? "dragging" : ""} ${
                 dragOverIndex === index ? "drag-over" : ""
               }`}
               data-index={index}
@@ -316,7 +314,13 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
                       width: "100%",
                     }}
                   >
-                    <span className="drag-handle" title="Drag to reorder" style={{ cursor: "grab", userSelect: "none" }}>☰</span>
+                    <span
+                      className="drag-handle"
+                      title="Drag to reorder"
+                      style={{ cursor: "grab", userSelect: "none" }}
+                    >
+                      ☰
+                    </span>
                     <input
                       type="text"
                       value={renameName}
@@ -337,7 +341,13 @@ export function DataTab({ series, setSeries, updateSeries, onAddSeries, removeSe
                   </div>
                 ) : (
                   <>
-                    <span className="drag-handle" title="Drag to reorder" style={{ cursor: "grab", userSelect: "none" }}>☰</span>
+                    <span
+                      className="drag-handle"
+                      title="Drag to reorder"
+                      style={{ cursor: "grab", userSelect: "none" }}
+                    >
+                      ☰
+                    </span>
                     <div className="series-info-wrapper">
                       <div
                         style={{
